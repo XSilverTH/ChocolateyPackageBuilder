@@ -36,7 +36,7 @@ The tool features a CLI interface.
 Generate a Chocolatey package directly from an installer file.
 
 ```bash
-ChocolateyPackageBuilder build <installerPath> [options]
+cpb build <installerPath> [options]
 ```
 
 **Options:**
@@ -50,7 +50,7 @@ ChocolateyPackageBuilder build <installerPath> [options]
 *Example:*
 
 ```bash
-ChocolateyPackageBuilder build ./setup.exe -n "MySoftware" -v "2.0.0" -m "Dev"
+cpb build ./setup.exe -n "MySoftware" -v "2.0.0" -m "Dev"
 ```
 
 ### 2. Pack a Scaffolded Template
@@ -58,11 +58,11 @@ ChocolateyPackageBuilder build ./setup.exe -n "MySoftware" -v "2.0.0" -m "Dev"
 If the installer type was unknown, or you opted to scaffold the template for manual editing, you can pack the directory into a `.nupkg` once you're done editing the `.nuspec` and `.ps1` script.
 
 ```bash
-ChocolateyPackageBuilder pack <directoryPath>
+cpb pack <directoryPath>
 ```
 
 *Example:*
 
 ```bash
-ChocolateyPackageBuilder pack ./MySoftware-template
+cpb pack ./MySoftware-template
 ```
