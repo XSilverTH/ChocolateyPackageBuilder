@@ -1,5 +1,7 @@
+using System.Runtime.Versioning;
 using System.Text;
 using System.Xml.Linq;
+using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Versioning;
 
@@ -26,9 +28,7 @@ public static class PackageGenerator
         ValidateRequest(request);
 
         if (!File.Exists(request.InstallerPath))
-        {
             throw new FileNotFoundException($"Installer not found: {request.InstallerPath}", request.InstallerPath);
-        }
 
         Directory.CreateDirectory(request.OutputDirectory);
 
@@ -43,19 +43,17 @@ public static class PackageGenerator
     public static PackScaffoldResult PackScaffold(string directoryPath)
     {
         if (!Directory.Exists(directoryPath))
-        {
             throw new DirectoryNotFoundException($"Directory not found: {directoryPath}");
-        }
 
         var nuspecFiles = Directory.GetFiles(directoryPath, "*.nuspec");
         if (nuspecFiles.Length != 1)
-        {
-            throw new InvalidOperationException($"Expected exactly one .nuspec file in '{directoryPath}', found {nuspecFiles.Length}.");
-        }
+            throw new InvalidOperationException(
+                $"Expected exactly one .nuspec file in '{directoryPath}', found {nuspecFiles.Length}.");
 
         using var fs = new FileStream(nuspecFiles[0], FileMode.Open, FileAccess.Read, FileShare.Read);
         var builder = new PackageBuilder(fs, directoryPath);
-        var parentDirectory = Directory.GetParent(Path.GetFullPath(directoryPath))?.FullName ?? Environment.CurrentDirectory;
+        var parentDirectory = Directory.GetParent(Path.GetFullPath(directoryPath))?.FullName ??
+                              Environment.CurrentDirectory;
         var outputPath = Path.Combine(parentDirectory, $"{builder.Id}.{builder.Version}.nupkg");
 
         using var outFs = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None);
@@ -64,7 +62,8 @@ public static class PackageGenerator
         return new PackScaffoldResult(outputPath);
     }
 
-    private static PackageBuildResult GeneratePackage(PackageBuildRequest request, string installerFileName, string scriptContent)
+    private static PackageBuildResult GeneratePackage(PackageBuildRequest request, string installerFileName,
+        string scriptContent)
     {
         var builder = new PackageBuilder
         {
@@ -73,7 +72,8 @@ public static class PackageGenerator
             Description = request.Description
         };
         builder.Authors.Add(request.Maintainer);
-        builder.Files.Add(new StreamPackageFile(new MemoryStream(Encoding.UTF8.GetBytes(scriptContent)), @"tools\chocolateyInstall.ps1"));
+        builder.Files.Add(new StreamPackageFile(new MemoryStream(Encoding.UTF8.GetBytes(scriptContent)),
+            @"tools\chocolateyInstall.ps1"));
         builder.Files.Add(new PhysicalPackageFile
         {
             SourcePath = request.InstallerPath,
@@ -84,10 +84,11 @@ public static class PackageGenerator
         using var fs = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None);
         builder.Save(fs);
 
-        return new PackageBuildResult(outputPath, IsScaffold: false);
+        return new PackageBuildResult(outputPath, false);
     }
 
-    private static PackageBuildResult GenerateScaffold(PackageBuildRequest request, string installerFileName, string scriptContent)
+    private static PackageBuildResult GenerateScaffold(PackageBuildRequest request, string installerFileName,
+        string scriptContent)
     {
         _ = new NuGetVersion(request.Version);
 
@@ -95,11 +96,12 @@ public static class PackageGenerator
         var toolsDir = Path.Combine(templateDir, "tools");
         Directory.CreateDirectory(toolsDir);
 
-        File.Copy(request.InstallerPath, Path.Combine(toolsDir, installerFileName), overwrite: true);
+        File.Copy(request.InstallerPath, Path.Combine(toolsDir, installerFileName), true);
         File.WriteAllText(Path.Combine(toolsDir, "chocolateyInstall.ps1"), scriptContent, Encoding.UTF8);
-        File.WriteAllText(Path.Combine(templateDir, $"{request.PackageName}.nuspec"), CreateNuspec(request), Encoding.UTF8);
+        File.WriteAllText(Path.Combine(templateDir, $"{request.PackageName}.nuspec"), CreateNuspec(request),
+            Encoding.UTF8);
 
-        return new PackageBuildResult(templateDir, IsScaffold: true);
+        return new PackageBuildResult(templateDir, true);
     }
 
     private static string CreateNuspec(PackageBuildRequest request)
@@ -129,10 +131,7 @@ public static class PackageGenerator
 
     private static void ThrowIfWhiteSpace(string value, string fieldName)
     {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            throw new ArgumentException($"{fieldName} cannot be empty.", fieldName);
-        }
+        if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException($"{fieldName} cannot be empty.", fieldName);
     }
 }
 
@@ -140,8 +139,8 @@ public sealed class StreamPackageFile(Stream stream, string targetPath) : IPacka
 {
     public string Path => targetPath;
     public string EffectivePath => targetPath;
-    public System.Runtime.Versioning.FrameworkName TargetFramework => null!;
-    public NuGet.Frameworks.NuGetFramework NuGetFramework => NuGet.Frameworks.NuGetFramework.AnyFramework;
+    public FrameworkName TargetFramework => null!;
+    public NuGetFramework NuGetFramework => NuGetFramework.AnyFramework;
     public DateTimeOffset LastWriteTime => DateTimeOffset.Now;
 
     public Stream GetStream()

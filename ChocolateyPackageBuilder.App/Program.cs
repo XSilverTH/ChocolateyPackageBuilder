@@ -4,20 +4,15 @@ using ChocolateyPackageBuilder.App.Cli;
 
 namespace ChocolateyPackageBuilder.App;
 
-sealed class Program
+internal sealed class Program
 {
     [STAThread]
     public static int Main(string[] args)
     {
-        if (args.Length > 0)
-        {
-            return CliApplication.Run(args);
-        }
-
-        return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        return args.Length > 0 ? CliApplication.Run(args) : BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 
-    public static AppBuilder BuildAvaloniaApp()
+    private static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
 #if DEBUG

@@ -3,7 +3,7 @@ using ChocolateyPackageBuilder.App.Services;
 
 namespace ChocolateyPackageBuilder.App.ViewModels;
 
-public partial class MainWindowViewModel : ViewModelBase
+public class MainWindowViewModel : ViewModelBase
 {
     public MainWindowViewModel(IFileDialogService fileDialogService)
     {

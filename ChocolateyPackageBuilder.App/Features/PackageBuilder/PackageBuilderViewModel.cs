@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-
 using ChocolateyPackageBuilder.App.Cli;
 using ChocolateyPackageBuilder.App.Services;
 using ChocolateyPackageBuilder.Core;
@@ -15,46 +14,37 @@ public partial class PackageBuilderViewModel : ObservableObject
 {
     private readonly IFileDialogService _fileDialogService;
 
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(BuildPackageCommand))]
+    private string description = string.Empty;
+
+    [ObservableProperty] private InstallerType detectedInstallerType = InstallerType.Unknown;
+
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DetectInstallerCommand))]
     [NotifyCanExecuteChangedFor(nameof(BuildPackageCommand))]
     private string installerPath = string.Empty;
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(BuildPackageCommand))]
-    private string packageName = string.Empty;
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(BuildPackageCommand))]
+    private bool isBusy;
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(BuildPackageCommand))]
-    private string version = "1.0.0";
-
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(BuildPackageCommand))]
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(BuildPackageCommand))]
     private string maintainer = BuildCommand.DefaultMaintainer();
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(BuildPackageCommand))]
-    private string description = string.Empty;
-
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(BuildPackageCommand))]
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(BuildPackageCommand))]
     private string outputDirectory = Environment.CurrentDirectory;
 
-    [ObservableProperty]
-    private InstallerType detectedInstallerType = InstallerType.Unknown;
-
-    [ObservableProperty]
-    private InstallerType selectedInstallerType = InstallerType.Unknown;
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(BuildPackageCommand))]
+    private string packageName = string.Empty;
 
     [ObservableProperty]
     private string scriptPreview = "Select an installer to preview the generated Chocolatey install script.";
 
-    [ObservableProperty]
-    private string statusMessage = "Ready.";
+    [ObservableProperty] private InstallerType selectedInstallerType = InstallerType.Unknown;
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(BuildPackageCommand))]
-    private bool isBusy;
+    [ObservableProperty] private string statusMessage = "Ready.";
+
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(BuildPackageCommand))]
+    private string version = "1.0.0";
 
     public PackageBuilderViewModel(IFileDialogService fileDialogService)
     {
@@ -73,21 +63,13 @@ public partial class PackageBuilderViewModel : ObservableObject
     private async Task BrowseInstallerAsync()
     {
         var path = await _fileDialogService.PickInstallerAsync();
-        if (string.IsNullOrWhiteSpace(path))
-        {
-            return;
-        }
+        if (string.IsNullOrWhiteSpace(path)) return;
 
         InstallerPath = path;
         if (string.IsNullOrWhiteSpace(PackageName))
-        {
             PackageName = BuildCommand.CreatePackageSlug(Path.GetFileNameWithoutExtension(path));
-        }
 
-        if (string.IsNullOrWhiteSpace(Description))
-        {
-            Description = $"Chocolatey package for {PackageName}.";
-        }
+        if (string.IsNullOrWhiteSpace(Description)) Description = $"Chocolatey package for {PackageName}.";
 
         DetectInstaller();
     }
@@ -96,10 +78,7 @@ public partial class PackageBuilderViewModel : ObservableObject
     private async Task BrowseOutputDirectoryAsync()
     {
         var path = await _fileDialogService.PickOutputDirectoryAsync();
-        if (!string.IsNullOrWhiteSpace(path))
-        {
-            OutputDirectory = path;
-        }
+        if (!string.IsNullOrWhiteSpace(path)) OutputDirectory = path;
     }
 
     [RelayCommand(CanExecute = nameof(CanDetectInstaller))]
@@ -126,10 +105,7 @@ public partial class PackageBuilderViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanBuildPackage))]
     private async Task BuildPackageAsync()
     {
-        if (!ValidateForBuild())
-        {
-            return;
-        }
+        if (!ValidateForBuild()) return;
 
         IsBusy = true;
         StatusMessage = "Building package...";
@@ -161,27 +137,35 @@ public partial class PackageBuilderViewModel : ObservableObject
         }
     }
 
-    partial void OnSelectedInstallerTypeChanged(InstallerType value) => RefreshScriptPreview();
+    partial void OnSelectedInstallerTypeChanged(InstallerType value)
+    {
+        RefreshScriptPreview();
+    }
 
     partial void OnPackageNameChanged(string value)
     {
-        if (!string.IsNullOrWhiteSpace(value))
-        {
-            Description = $"Chocolatey package for {value.Trim()}.";
-        }
+        if (!string.IsNullOrWhiteSpace(value)) Description = $"Chocolatey package for {value.Trim()}.";
 
         RefreshScriptPreview();
     }
 
-    partial void OnInstallerPathChanged(string value) => RefreshScriptPreview();
+    partial void OnInstallerPathChanged(string value)
+    {
+        RefreshScriptPreview();
+    }
 
-    private bool CanDetectInstaller() => !string.IsNullOrWhiteSpace(InstallerPath) && File.Exists(InstallerPath);
+    private bool CanDetectInstaller()
+    {
+        return !string.IsNullOrWhiteSpace(InstallerPath) && File.Exists(InstallerPath);
+    }
 
     private bool CanBuildPackage()
-        => !IsBusy &&
-           !string.IsNullOrWhiteSpace(InstallerPath) &&
-           File.Exists(InstallerPath) &&
-           !string.IsNullOrWhiteSpace(OutputDirectory);
+    {
+        return !IsBusy &&
+               !string.IsNullOrWhiteSpace(InstallerPath) &&
+               File.Exists(InstallerPath) &&
+               !string.IsNullOrWhiteSpace(OutputDirectory);
+    }
 
     private bool ValidateForBuild()
     {

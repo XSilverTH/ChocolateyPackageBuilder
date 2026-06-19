@@ -9,13 +9,6 @@ namespace ChocolateyPackageBuilder.App.Cli;
 
 public sealed class PackCommand : Command<PackCommand.Settings>
 {
-    public sealed class Settings : CommandSettings
-    {
-        [CommandArgument(0, "<directoryPath>")]
-        [Description("Path to the scaffolded template directory containing a .nuspec file.")]
-        public string DirectoryPath { get; set; } = string.Empty;
-    }
-
     protected override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         try
@@ -29,5 +22,12 @@ public sealed class PackCommand : Command<PackCommand.Settings>
             AnsiConsole.MarkupLine($"[red]Error:[/] {Markup.Escape(ex.Message)}");
             return 1;
         }
+    }
+
+    public sealed class Settings : CommandSettings
+    {
+        [CommandArgument(0, "<directoryPath>")]
+        [Description("Path to the scaffolded template directory containing a .nuspec file.")]
+        public string DirectoryPath { get; set; } = string.Empty;
     }
 }
