@@ -5,10 +5,9 @@ using Spectre.Console.Cli;
 
 namespace ChocolateyPackageBuilder.Cli.Commands;
 
-public sealed class BuildCommand : Command<BuildCommand.Settings>
+public sealed class BuildCommand : AsyncCommand<BuildCommand.Settings>
 {
-    protected override int Execute(CommandContext context, Settings settings,
-        CancellationToken cancellationToken)
+    protected override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         try
         {
@@ -78,7 +77,7 @@ public sealed class BuildCommand : Command<BuildCommand.Settings>
                 AnsiConsole.MarkupLine(
                     "[yellow]Warning:[/] Installer type was not detected. Scaffolded template silent arguments need review.");
 
-            var result = PackageGenerator.Generate(new PackageBuildRequest(
+            var result = await PackageGenerator.GenerateAsync(new PackageBuildRequest(
                 installerPath,
                 type,
                 packageName,

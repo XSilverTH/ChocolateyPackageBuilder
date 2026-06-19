@@ -120,7 +120,7 @@ public partial class PackageBuilderViewModel : ObservableObject
                 Description.Trim(),
                 OutputDirectory.Trim());
 
-            var result = await Task.Run(() => PackageGenerator.Generate(request));
+            var result = await PackageGenerator.GenerateAsync(request);
             StatusMessage = result.IsScaffold
                 ? $"Scaffolded template: {result.OutputPath}. Review tools/chocolateyInstall.ps1 before packing."
                 : $"Built package: {result.OutputPath}";

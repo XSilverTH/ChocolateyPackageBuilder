@@ -22,7 +22,7 @@ public sealed record PackScaffoldResult(string OutputPath);
 
 public static class PackageGenerator
 {
-    public static PackageBuildResult Generate(PackageBuildRequest request)
+    public static async Task<PackageBuildResult> GenerateAsync(PackageBuildRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
         ValidateRequest(request);
@@ -36,8 +36,8 @@ public static class PackageGenerator
         var scriptContent = ScriptGenerator.Generate(request.InstallerType, request.PackageName, installerFileName);
 
         return request.InstallerType == InstallerType.Unknown
-            ? GenerateScaffold(request, installerFileName, scriptContent)
-            : GeneratePackage(request, installerFileName, scriptContent);
+            ? await GenerateScaffoldAsync(request, installerFileName, scriptContent)
+            : await GeneratePackageAsync(request, installerFileName, scriptContent);
     }
 
     public static PackScaffoldResult PackScaffold(string directoryPath)
@@ -62,7 +62,7 @@ public static class PackageGenerator
         return new PackScaffoldResult(outputPath);
     }
 
-    private static PackageBuildResult GeneratePackage(PackageBuildRequest request, string installerFileName,
+    private static async Task<PackageBuildResult> GeneratePackageAsync(PackageBuildRequest request, string installerFileName,
         string scriptContent)
     {
         var builder = new PackageBuilder
@@ -81,13 +81,16 @@ public static class PackageGenerator
         });
 
         var outputPath = Path.Combine(request.OutputDirectory, $"{request.PackageName}.{request.Version}.nupkg");
-        using var fs = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None);
-        builder.Save(fs);
+        await Task.Run(() =>
+        {
+            using var fs = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None);
+            builder.Save(fs);
+        });
 
         return new PackageBuildResult(outputPath, false);
     }
 
-    private static PackageBuildResult GenerateScaffold(PackageBuildRequest request, string installerFileName,
+    private static async Task<PackageBuildResult> GenerateScaffoldAsync(PackageBuildRequest request, string installerFileName,
         string scriptContent)
     {
         _ = new NuGetVersion(request.Version);
@@ -96,9 +99,16 @@ public static class PackageGenerator
         var toolsDir = Path.Combine(templateDir, "tools");
         Directory.CreateDirectory(toolsDir);
 
-        File.Copy(request.InstallerPath, Path.Combine(toolsDir, installerFileName), true);
-        File.WriteAllText(Path.Combine(toolsDir, "chocolateyInstall.ps1"), scriptContent, Encoding.UTF8);
-        File.WriteAllText(Path.Combine(templateDir, $"{request.PackageName}.nuspec"), CreateNuspec(request),
+        var destinationPath = Path.Combine(toolsDir, installerFileName);
+        
+        using (var sourceStream = new FileStream(request.InstallerPath, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true))
+        using (var destinationStream = new FileStream(destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, 81920, useAsync: true))
+        {
+            await sourceStream.CopyToAsync(destinationStream);
+        }
+
+        await File.WriteAllTextAsync(Path.Combine(toolsDir, "chocolateyInstall.ps1"), scriptContent, Encoding.UTF8);
+        await File.WriteAllTextAsync(Path.Combine(templateDir, $"{request.PackageName}.nuspec"), CreateNuspec(request),
             Encoding.UTF8);
 
         return new PackageBuildResult(templateDir, true);
