@@ -1,26 +1,29 @@
 # Chocolatey Package Builder
 
-> **⚠️ Note:** This project is in its very early stages and more installer workflows are planned.
+Chocolatey Package Builder is an early-stage .NET project for generating Chocolatey packages from Windows installer files. It currently includes a shared packaging core, a Spectre.Console-based CLI, an Avalonia GUI, and a launcher executable that chooses between them.
 
-ChocolateyPackageBuilder is a .NET 10 Avalonia application for creating Chocolatey packages. Run it with no arguments to open the GUI, or pass arguments to use the CLI. It detects MSI, Inno Setup, and NSIS installers, generates `chocolateyInstall.ps1`, and either builds a `.nupkg` directly or creates a scaffold for manual review.
+This project is very early in development. Expect rough edges, missing workflows, and changing command/UI behavior. More features and polish are coming soon.
 
-## Features
+## Current capabilities
 
-* **Avalonia GUI:** A SukiUI-styled package builder for selecting an installer, editing metadata, previewing the generated install script, and building output.
-* **CLI mode:** The same executable acts as a command-line app when arguments are provided.
-* **Installer detection:** Detects Inno Setup, NSIS, and MSI installers via binary and signature analysis.
-* **Script generation:** Generates Chocolatey install scripts with installer-specific silent arguments.
-* **Auto-packaging:** Builds `.nupkg` files directly using `NuGet.Packaging` without requiring the Chocolatey CLI.
-* **Scaffolding:** Creates a template directory with a `.nuspec`, installer, and script when the installer type is unknown or manual edits are requested.
-* **Packager:** Packs scaffolded directories into final `.nupkg` files.
+- Detects common installer types:
+  - MSI
+  - Inno Setup
+  - NSIS
+- Generates `tools/chocolateyInstall.ps1` with installer-specific silent arguments.
+- Builds `.nupkg` packages directly when the installer type is known.
+- Creates scaffolded package templates when the installer type is unknown or when manual review is preferred.
+- Packs a reviewed scaffold directory into a `.nupkg`.
+- Provides one launcher executable: starts the GUI with no arguments, or routes arguments to the CLI.
 
-## Getting Started
+## Requirements
 
-### Prerequisites
+- .NET 10 SDK
+- Chocolatey knowledge for reviewing generated package scripts before distribution
 
-* [.NET 10.0 SDK](https://dotnet.microsoft.com/)
+## Build
 
-### Build
+From the repository root:
 
 ```bash
 dotnet build ChocolateyPackageBuilder.slnx
@@ -28,57 +31,72 @@ dotnet build ChocolateyPackageBuilder.slnx
 
 ## Usage
 
-### GUI
+The `ChocolateyPackageBuilder` launcher is the main entry point. It starts the GUI when run without arguments and runs the CLI when arguments are provided.
 
-Run without arguments:
-
-```bash
-dotnet run --project ChocolateyPackageBuilder.App
-```
-
-The GUI opens the package-builder workflow. Pick an installer, confirm or override the installer type, edit package metadata, review the generated script, and build the package or scaffold.
-
-### CLI
-
-Run with arguments:
+Start the GUI:
 
 ```bash
-dotnet run --project ChocolateyPackageBuilder.App -- <command> [options]
+dotnet run --project ChocolateyPackageBuilder
 ```
 
-#### Build a package or scaffold
+Run a CLI command through the launcher:
 
 ```bash
-dotnet run --project ChocolateyPackageBuilder.App -- build <installerPath> [options]
+dotnet run --project ChocolateyPackageBuilder -- build path/to/installer.exe \
+  --name example-package \
+  --version 1.0.0 \
+  --maintainer "Your Name" \
+  --description "Chocolatey package for Example." \
+  --output ./artifacts
 ```
 
-Options:
+If you run the launcher with `build` but omit the installer path, the CLI starts an interactive prompt.
 
-* `-n, --name <NAME>`: Package name. Defaults to a Chocolatey-safe slug from the installer filename.
-* `-v, --version <VERSION>`: Package version. Defaults to `1.0.0`.
-* `-m, --maintainer <MAINTAINER>`: Package maintainer. Defaults to the current OS user, or `Unknown`.
-* `-d, --description <DESCRIPTION>`: Package description. Defaults to `Chocolatey package for <name>.`.
-* `-o, --output <OUTPUT>`: Output directory. Defaults to the current directory.
-* `-t, --type <TYPE>`: Installer type: `auto`, `msi`, `inno`, `nsis`, or `scaffold`. Defaults to `auto`.
+### Installer type
 
-`--type auto` detects the installer. If detection returns unknown, the command does not prompt; it creates a scaffold and warns that silent arguments need review. Use `--type scaffold` to force scaffold output.
-
-Example:
+By default, `build` uses automatic detection:
 
 ```bash
-dotnet run --project ChocolateyPackageBuilder.App -- build ./setup.exe -n my-software -v 2.0.0 -m Dev --type auto
+dotnet run --project ChocolateyPackageBuilder -- build path/to/installer.exe --type auto
 ```
 
-#### Pack a scaffolded template
+Supported values:
 
-After editing a scaffolded `.nuspec` or `tools/chocolateyInstall.ps1`, pack the directory into a `.nupkg`:
+- `auto`
+- `msi`
+- `inno`
+- `nsis`
+- `scaffold`
+
+Use `scaffold` when you want a template directory instead of a direct package build:
 
 ```bash
-dotnet run --project ChocolateyPackageBuilder.App -- pack <directoryPath>
+dotnet run --project ChocolateyPackageBuilder -- build path/to/installer.exe --type scaffold
 ```
 
-Example:
+Review the generated `tools/chocolateyInstall.ps1`, then pack the scaffold:
 
 ```bash
-dotnet run --project ChocolateyPackageBuilder.App -- pack ./my-software-template
+dotnet run --project ChocolateyPackageBuilder -- pack path/to/package-template
 ```
+
+## GUI
+
+The GUI currently focuses on selecting an installer, detecting its type, previewing the generated Chocolatey install script, and building a package or scaffold. Launch it by running `ChocolateyPackageBuilder` without arguments.
+
+## Project layout
+
+```text
+ChocolateyPackageBuilder/       Launcher executable; GUI with no args, CLI with args
+ChocolateyPackageBuilder.Core/  Shared package generation and installer detection logic
+ChocolateyPackageBuilder.Cli/   Command-line interface
+ChocolateyPackageBuilder.Gui/   Avalonia desktop interface
+```
+
+## Development status
+
+This repository is under active, early development. Generated scripts should be reviewed before use. Expect additional installer support, packaging options, and UI improvements in future updates.
+
+## License
+
+This project is licensed under the terms in [LICENSE](LICENSE).
