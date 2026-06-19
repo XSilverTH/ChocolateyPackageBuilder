@@ -1,11 +1,11 @@
-namespace ChocolateyPackageBuilder.Services;
+namespace ChocolateyPackageBuilder.Core;
 
 public static class ScriptGenerator
 {
     public static string Generate(InstallerType type, string packageName, string installerFileName)
     {
         var isScaffold = type == InstallerType.Unknown;
-        
+
         string silentArgs;
         var fileType = "exe";
 
