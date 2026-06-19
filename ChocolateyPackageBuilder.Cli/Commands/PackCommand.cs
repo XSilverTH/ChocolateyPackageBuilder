@@ -3,7 +3,7 @@ using ChocolateyPackageBuilder.Core;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace ChocolateyPackageBuilder.Cli;
+namespace ChocolateyPackageBuilder.Cli.Commands;
 
 public sealed class PackCommand : Command<PackCommand.Settings>
 {

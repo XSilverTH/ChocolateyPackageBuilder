@@ -1,3 +1,4 @@
+using ChocolateyPackageBuilder.Cli.Commands;
 using Spectre.Console.Cli;
 
 namespace ChocolateyPackageBuilder.Cli;

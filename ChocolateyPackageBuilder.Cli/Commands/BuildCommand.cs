@@ -1,14 +1,13 @@
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using ChocolateyPackageBuilder.Core;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace ChocolateyPackageBuilder.Cli;
+namespace ChocolateyPackageBuilder.Cli.Commands;
 
 public sealed class BuildCommand : Command<BuildCommand.Settings>
 {
-    protected override int Execute([NotNull] CommandContext context, [NotNull] Settings settings,
+    protected override int Execute(CommandContext context, Settings settings,
         CancellationToken cancellationToken)
     {
         try
