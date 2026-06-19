@@ -13,6 +13,15 @@ public sealed class PackCommand : Command<PackCommand.Settings>
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(settings.DirectoryPath))
+            {
+                AnsiConsole.Clear();
+                AnsiConsole.Write(new Rule("[cyan]Chocolatey Package Builder - Pack[/]"));
+
+                settings.DirectoryPath = AnsiConsole.Prompt(
+                    new TextPrompt<string>("Path to the scaffolded template directory:")
+                        .Validate(path => System.IO.Directory.Exists(path) ? ValidationResult.Success() : ValidationResult.Error("[red]Directory not found.[/]")));
+            }
             var result = PackageGenerator.PackScaffold(settings.DirectoryPath);
             AnsiConsole.MarkupLine($"[green]Packed scaffold:[/] {Markup.Escape(result.OutputPath)}");
             return 0;
@@ -26,8 +35,8 @@ public sealed class PackCommand : Command<PackCommand.Settings>
 
     public sealed class Settings : CommandSettings
     {
-        [CommandArgument(0, "<directoryPath>")]
+        [CommandArgument(0, "[directoryPath]")]
         [Description("Path to the scaffolded template directory containing a .nuspec file.")]
-        public string DirectoryPath { get; set; } = string.Empty;
+        public string? DirectoryPath { get; set; }
     }
 }

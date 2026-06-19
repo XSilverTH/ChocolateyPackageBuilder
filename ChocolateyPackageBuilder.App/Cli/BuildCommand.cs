@@ -17,6 +17,42 @@ public sealed partial class BuildCommand : Command<BuildCommand.Settings>
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(settings.InstallerPath))
+            {
+                AnsiConsole.Clear();
+                AnsiConsole.Write(new Rule("[cyan]Chocolatey Package Builder - Build[/]"));
+
+                settings.InstallerPath = AnsiConsole.Prompt(
+                    new TextPrompt<string>("Path to the installer file:")
+                        .Validate(path => File.Exists(path) ? ValidationResult.Success() : ValidationResult.Error("[red]File not found.[/]")));
+
+                settings.Type = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("Installer type:")
+                        .AddChoices("auto", "msi", "inno", "nsis", "scaffold"));
+
+                var defaultName = CreatePackageSlug(Path.GetFileNameWithoutExtension(settings.InstallerPath));
+                settings.Name = AnsiConsole.Prompt(
+                    new TextPrompt<string>("Package name:")
+                        .DefaultValue(defaultName));
+
+                settings.Version = AnsiConsole.Prompt(
+                    new TextPrompt<string>("Package version:")
+                        .DefaultValue("1.0.0"));
+
+                settings.Maintainer = AnsiConsole.Prompt(
+                    new TextPrompt<string>("Maintainer:")
+                        .DefaultValue(DefaultMaintainer()));
+
+                settings.Description = AnsiConsole.Prompt(
+                    new TextPrompt<string>("Description:")
+                        .DefaultValue($"Chocolatey package for {settings.Name}."));
+
+                settings.Output = AnsiConsole.Prompt(
+                    new TextPrompt<string>("Output directory:")
+                        .DefaultValue(Environment.CurrentDirectory));
+            }
+
             var installerPath = settings.InstallerPath;
             if (!File.Exists(installerPath))
             {
@@ -101,9 +137,9 @@ public sealed partial class BuildCommand : Command<BuildCommand.Settings>
 
     public sealed class Settings : CommandSettings
     {
-        [CommandArgument(0, "<installerPath>")]
+        [CommandArgument(0, "[installerPath]")]
         [Description("Path to the installer file.")]
-        public string InstallerPath { get; set; } = string.Empty;
+        public string? InstallerPath { get; set; }
 
         [CommandOption("-n|--name")]
         [Description("The name of the package.")]
