@@ -3,4 +3,5 @@
     <Project Path="ChocolateyPackageBuilder.Gui/ChocolateyPackageBuilder.Gui.csproj"/>
     <Project Path="ChocolateyPackageBuilder.Cli/ChocolateyPackageBuilder.Cli.csproj"/>
     <Project Path="ChocolateyPackageBuilder.Core/ChocolateyPackageBuilder.Core.csproj"/>
+    <Project Path="ChocolateyPackageBuilder.Tests/ChocolateyPackageBuilder.Tests.csproj"/>
 </Solution>

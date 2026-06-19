@@ -141,9 +141,23 @@ public partial class PackageBuilderViewModel : ObservableObject
         RefreshScriptPreview();
     }
 
-    partial void OnPackageNameChanged(string value)
+    partial void OnPackageNameChanged(string? oldValue, string newValue)
     {
-        if (!string.IsNullOrWhiteSpace(value)) Description = $"Chocolatey package for {value.Trim()}.";
+        var oldDefaultDescription = !string.IsNullOrWhiteSpace(oldValue)
+            ? $"Chocolatey package for {oldValue.Trim()}."
+            : string.Empty;
+
+        if (string.IsNullOrWhiteSpace(Description) || Description == oldDefaultDescription)
+        {
+            if (!string.IsNullOrWhiteSpace(newValue))
+            {
+                Description = $"Chocolatey package for {newValue.Trim()}.";
+            }
+            else
+            {
+                Description = string.Empty;
+            }
+        }
 
         RefreshScriptPreview();
     }
