@@ -1,0 +1,144 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ChocolateyPackageBuilder.Gui.Features.CustomInstallerProject"
+             x:Name="Root"
+             mc:Ignorable="d"
+             d:DesignWidth="1400"
+             d:DesignHeight="820"
+             x:Class="ChocolateyPackageBuilder.Gui.Features.CustomInstallerProject.CustomInstallerProjectView"
+             x:DataType="vm:CustomInstallerProjectViewModel">
+    <Grid Background="{DynamicResource SukiBackgroundBrush}" RowDefinitions="Auto,*,Auto" Margin="22" RowSpacing="18">
+        <Border Padding="18" CornerRadius="18" Background="{DynamicResource SukiCardBackgroundBrush}">
+            <Grid ColumnDefinitions="*,*,*,Auto,Auto,Auto,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="10">
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Project" FontWeight="SemiBold" />
+                    <TextBox Text="{Binding ProjectPath}" IsReadOnly="True" PlaceholderText="Save or open a .cpbproj" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="5">
+                    <TextBlock Text="Package name" FontWeight="SemiBold" />
+                    <TextBox Text="{Binding PackageName}" PlaceholderText="my-package" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Spacing="5">
+                    <TextBlock Text="Version" FontWeight="SemiBold" />
+                    <TextBox Text="{Binding Version}" />
+                </StackPanel>
+                <Button Grid.Column="3" Content="New" Command="{Binding NewProjectCommand}" VerticalAlignment="Bottom" />
+                <Button Grid.Column="4" Content="Open" Command="{Binding OpenProjectCommand}" VerticalAlignment="Bottom" />
+                <Button Grid.Column="5" Content="Save" Command="{Binding SaveProjectCommand}" VerticalAlignment="Bottom" />
+                <Button Grid.Column="6" Content="Save as" Command="{Binding SaveProjectAsCommand}" VerticalAlignment="Bottom" />
+
+                <StackPanel Grid.Row="1" Spacing="5">
+                    <TextBlock Text="Maintainer" FontWeight="SemiBold" />
+                    <TextBox Text="{Binding Maintainer}" />
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="1" Spacing="5">
+                    <TextBlock Text="Description" FontWeight="SemiBold" />
+                    <TextBox Text="{Binding Description}" />
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="5" Spacing="5">
+                    <TextBlock Text="Output directory" FontWeight="SemiBold" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <TextBox Text="{Binding OutputDirectory}" />
+                        <Button Grid.Column="1" Content="Browse" Command="{Binding BrowseOutputDirectoryCommand}" />
+                    </Grid>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="1.1*,1.4*,1.2*" ColumnSpacing="18">
+            <Border Padding="18" CornerRadius="18" Background="{DynamicResource SukiCardBackgroundBrush}">
+                <Grid RowDefinitions="Auto,*">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Project files" FontSize="20" FontWeight="SemiBold" />
+                            <TextBlock Text="Files are copied into the saved project's files folder." Opacity="0.68" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Add file" Command="{Binding AddProjectFileCommand}" />
+                    </Grid>
+                    <ScrollViewer Grid.Row="1" Margin="0,14,0,0">
+                        <ItemsControl ItemsSource="{Binding ProjectFiles}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ProjectFileItemViewModel">
+                                    <Border Margin="0,0,0,10" Padding="12" CornerRadius="12" Background="{DynamicResource SukiLowBackgroundBrush}">
+                                        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto" ColumnSpacing="8" RowSpacing="6">
+                                            <TextBox Text="{Binding Id}" PlaceholderText="id" />
+                                            <Button Grid.Column="1" Content="Remove" Command="{Binding #Root.DataContext.RemoveProjectFileCommand}" CommandParameter="{Binding .}" />
+                                            <TextBox Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding SourcePath}" PlaceholderText="source path" />
+                                            <TextBox Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding PackagePath}" PlaceholderText="package path" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1" Padding="18" CornerRadius="18" Background="{DynamicResource SukiCardBackgroundBrush}">
+                <Grid RowDefinitions="Auto,*">
+                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Install actions" FontSize="20" FontWeight="SemiBold" />
+                            <TextBlock Text="Actions run in order when Chocolatey installs the package." Opacity="0.68" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Add copy" Command="{Binding AddCopyActionCommand}" />
+                        <Button Grid.Column="2" Content="Add run" Command="{Binding AddRunActionCommand}" />
+                    </Grid>
+                    <ScrollViewer Grid.Row="1" Margin="0,14,0,0">
+                        <ItemsControl ItemsSource="{Binding Actions}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ActionItemViewModel">
+                                    <Border Margin="0,0,0,12" Padding="12" CornerRadius="12" Background="{DynamicResource SukiLowBackgroundBrush}">
+                                        <StackPanel Spacing="8">
+                                            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+                                                <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                                <Button Grid.Column="1" Content="Up" Command="{Binding #Root.DataContext.MoveActionUpCommand}" CommandParameter="{Binding .}" />
+                                                <Button Grid.Column="2" Content="Down" Command="{Binding #Root.DataContext.MoveActionDownCommand}" CommandParameter="{Binding .}" />
+                                                <Button Grid.Column="3" Content="Remove" Command="{Binding #Root.DataContext.RemoveActionCommand}" CommandParameter="{Binding .}" />
+                                            </Grid>
+                                            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                                <ComboBox ItemsSource="{Binding #Root.DataContext.ActionPathKinds}" SelectedItem="{Binding SourceKind}" />
+                                                <TextBox Grid.Column="1" Text="{Binding SourceValue}" PlaceholderText="file id or path" />
+                                            </Grid>
+                                            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                                                <ComboBox ItemsSource="{Binding #Root.DataContext.ActionPathKinds}" SelectedItem="{Binding DestinationKind}" />
+                                                <TextBox Grid.Column="1" Text="{Binding DestinationValue}" PlaceholderText="destination" />
+                                            </Grid>
+                                            <TextBox Text="{Binding Arguments}" PlaceholderText="arguments" />
+                                            <Grid ColumnDefinitions="Auto,Auto,*,Auto" ColumnSpacing="14">
+                                                <CheckBox Content="Overwrite" IsChecked="{Binding Overwrite}" />
+                                                <CheckBox Grid.Column="1" Content="Wait" IsChecked="{Binding WaitForExit}" />
+                                                <TextBox Grid.Column="2" Text="{Binding ValidExitCodesText}" PlaceholderText="valid exit codes" />
+                                                <TextBlock Grid.Column="3" Text="{Binding Kind}" VerticalAlignment="Center" Opacity="0.7" />
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Padding="18" CornerRadius="18" Background="{DynamicResource SukiCardBackgroundBrush}">
+                <Grid RowDefinitions="Auto,*">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Generated script preview" FontSize="20" FontWeight="SemiBold" />
+                        <TextBlock Text="The saved .cpbproj stores actions, not this generated script." Opacity="0.68" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <TextBox Grid.Row="1" Margin="0,14,0,0" Text="{Binding ScriptPreview}" AcceptsReturn="True" IsReadOnly="True" FontFamily="Consolas, monospace" TextWrapping="NoWrap" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2" Padding="16" CornerRadius="18" Background="{DynamicResource SukiCardBackgroundBrush}">
+            <Grid ColumnDefinitions="Auto,160,*" ColumnSpacing="16" VerticalAlignment="Center">
+                <Button Content="Build project package" Command="{Binding BuildProjectCommand}" Classes="accent" Padding="22,10" />
+                <ProgressBar Grid.Column="1" IsIndeterminate="True" IsVisible="{Binding IsBusy}" Height="6" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="2" Text="{Binding StatusMessage}" TextWrapping="Wrap" VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

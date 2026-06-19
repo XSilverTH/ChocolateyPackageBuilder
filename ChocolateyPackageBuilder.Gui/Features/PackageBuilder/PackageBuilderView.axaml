@@ -15,7 +15,7 @@
                     <TextBlock Text="Chocolatey" FontSize="18" FontWeight="SemiBold" />
                     <TextBlock Text="Package Builder" FontSize="28" FontWeight="Bold" TextWrapping="Wrap" />
                     <TextBlock
-                        Text="Build supported packages now. Custom installer flows can land beside this feature later."
+                        Text="Build quick single-installer packages. Use Custom project for action-based installers."
                         TextWrapping="Wrap" Opacity="0.72" Margin="0,12,0,0" />
                 </StackPanel>
 

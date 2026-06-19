@@ -1,8 +1,8 @@
 # Chocolatey Package Builder
 
-Chocolatey Package Builder is an early-stage .NET project for generating Chocolatey packages from Windows installer files. It currently includes a shared packaging core, a Spectre.Console-based CLI, an Avalonia GUI, and a launcher executable that chooses between them.
+Chocolatey Package Builder is an early-stage .NET project for generating Chocolatey packages from Windows installer files and saved custom installer projects. It currently includes a shared packaging core, a Spectre.Console-based CLI, an Avalonia GUI, and a launcher executable that chooses between them.
 
-This project is very early in development. Expect rough edges, missing workflows, and changing command/UI behavior. More features and polish are coming soon.
+This project is very early in development. Expect rough edges and changing command/UI behavior. Generated scripts should be reviewed before distribution.
 
 ## Current capabilities
 
@@ -14,6 +14,8 @@ This project is very early in development. Expect rough edges, missing workflows
 - Builds `.nupkg` packages directly when the installer type is known.
 - Creates scaffolded package templates when the installer type is unknown or when manual review is preferred.
 - Packs a reviewed scaffold directory into a `.nupkg`.
+- Saves `.cpbproj` custom installer projects containing package metadata, bundled files, and ordered install actions.
+- Builds custom project packages with generated scripts for copying files and starting files with arguments.
 - Provides one launcher executable: starts the GUI with no arguments, or routes arguments to the CLI.
 
 ## Requirements
@@ -77,12 +79,24 @@ dotnet run --project ChocolateyPackageBuilder -- build path/to/installer.exe --t
 Review the generated `tools/chocolateyInstall.ps1`, then pack the scaffold:
 
 ```bash
-dotnet run --project ChocolateyPackageBuilder -- pack path/to/package-template
+dotnet run --project ChocolateyPackageBuilder -- pack path/to/package-template --output ./artifacts
+```
+
+### Custom installer projects
+
+The GUI's **Custom project** tab is the primary workflow for project-based installers. Create or open a `.cpbproj`, add files to the project, stack actions such as copying a bundled file or running a file with arguments, then save and build the project package.
+
+Saved projects are portable: GUI-added files are copied under the project `files/` directory, while literal action paths such as `%ProgramFiles%\Vendor\app.exe` are evaluated on the installing computer.
+
+Pack a saved project from the CLI:
+
+```bash
+dotnet run --project ChocolateyPackageBuilder -- pack path/to/project.cpbproj --output ./artifacts
 ```
 
 ## GUI
 
-The GUI currently focuses on selecting an installer, detecting its type, previewing the generated Chocolatey install script, and building a package or scaffold. Launch it by running `ChocolateyPackageBuilder` without arguments.
+The GUI opens on the custom project editor for action-based installers. The **Quick installer** tab keeps the single-installer workflow for selecting an installer, detecting its type, previewing the generated Chocolatey install script, and building a package or scaffold.
 
 ## Project layout
 

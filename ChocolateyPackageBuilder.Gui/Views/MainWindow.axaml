@@ -1,7 +1,8 @@
 <sukiControls:SukiWindow xmlns="https://github.com/avaloniaui"
                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                          xmlns:vm="using:ChocolateyPackageBuilder.Gui.ViewModels"
-                         xmlns:features="using:ChocolateyPackageBuilder.Gui.Features.PackageBuilder"
+                         xmlns:quick="using:ChocolateyPackageBuilder.Gui.Features.PackageBuilder"
+                         xmlns:custom="using:ChocolateyPackageBuilder.Gui.Features.CustomInstallerProject"
                          xmlns:sukiControls="using:SukiUI.Controls"
                          xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -17,5 +18,12 @@
                          Icon="avares://ChocolateyPackageBuilder.Gui/Assets/avalonia-logo.ico"
                          Title="Chocolatey Package Builder"
                          BackgroundAnimationEnabled="True">
-    <features:PackageBuilderView DataContext="{Binding PackageBuilder}" />
+    <TabControl>
+        <TabItem Header="Custom project">
+            <custom:CustomInstallerProjectView DataContext="{Binding CustomInstallerProject}" />
+        </TabItem>
+        <TabItem Header="Quick installer">
+            <quick:PackageBuilderView DataContext="{Binding PackageBuilder}" />
+        </TabItem>
+    </TabControl>
 </sukiControls:SukiWindow>
