@@ -1,3 +1,5 @@
 <Solution>
+  <Project Path="ChocolateyPackageBuilder.App/ChocolateyPackageBuilder.App.csproj" />
+  <Project Path="ChocolateyPackageBuilder.Core/ChocolateyPackageBuilder.Core.csproj" />
   <Project Path="ChocolateyPackageBuilder/ChocolateyPackageBuilder.csproj" />
 </Solution>
