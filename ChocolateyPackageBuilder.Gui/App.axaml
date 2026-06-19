@@ -1,8 +1,8 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="using:ChocolateyPackageBuilder.App"
+             xmlns:local="using:ChocolateyPackageBuilder.Gui"
              xmlns:sukiUi="using:SukiUI"
-             x:Class="ChocolateyPackageBuilder.App.App"
+             x:Class="ChocolateyPackageBuilder.Gui.App"
              RequestedThemeVariant="Default">
 
     <Application.DataTemplates>

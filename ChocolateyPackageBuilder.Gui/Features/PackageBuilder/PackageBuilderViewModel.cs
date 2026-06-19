@@ -2,13 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using ChocolateyPackageBuilder.App.Cli;
-using ChocolateyPackageBuilder.App.Services;
 using ChocolateyPackageBuilder.Core;
+using ChocolateyPackageBuilder.Gui.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace ChocolateyPackageBuilder.App.Features.PackageBuilder;
+namespace ChocolateyPackageBuilder.Gui.Features.PackageBuilder;
 
 public partial class PackageBuilderViewModel : ObservableObject
 {
@@ -28,7 +27,7 @@ public partial class PackageBuilderViewModel : ObservableObject
     private bool isBusy;
 
     [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(BuildPackageCommand))]
-    private string maintainer = BuildCommand.DefaultMaintainer();
+    private string maintainer = PackageUtility.DefaultMaintainer();
 
     [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(BuildPackageCommand))]
     private string outputDirectory = Environment.CurrentDirectory;
@@ -67,7 +66,7 @@ public partial class PackageBuilderViewModel : ObservableObject
 
         InstallerPath = path;
         if (string.IsNullOrWhiteSpace(PackageName))
-            PackageName = BuildCommand.CreatePackageSlug(Path.GetFileNameWithoutExtension(path));
+            PackageName = PackageUtility.CreatePackageSlug(Path.GetFileNameWithoutExtension(path));
 
         if (string.IsNullOrWhiteSpace(Description)) Description = $"Chocolatey package for {PackageName}.";
 

@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace ChocolateyPackageBuilder.App.Features.PackageBuilder;
+namespace ChocolateyPackageBuilder.Gui.Features.PackageBuilder;
 
 public partial class PackageBuilderView : UserControl
 {

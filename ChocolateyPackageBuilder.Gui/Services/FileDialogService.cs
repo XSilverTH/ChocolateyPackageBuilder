@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 
-namespace ChocolateyPackageBuilder.App.Services;
+namespace ChocolateyPackageBuilder.Gui.Services;
 
 public sealed class FileDialogService(Window owner) : IFileDialogService
 {

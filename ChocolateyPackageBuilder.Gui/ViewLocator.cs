@@ -2,9 +2,9 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using ChocolateyPackageBuilder.App.ViewModels;
+using ChocolateyPackageBuilder.Gui.ViewModels;
 
-namespace ChocolateyPackageBuilder.App;
+namespace ChocolateyPackageBuilder.Gui;
 
 /// <summary>
 ///     Given a view model, returns the corresponding view if possible.

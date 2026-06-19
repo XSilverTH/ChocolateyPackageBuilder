@@ -1,10 +1,10 @@
 using Spectre.Console.Cli;
 
-namespace ChocolateyPackageBuilder.App.Cli;
+namespace ChocolateyPackageBuilder.Cli;
 
-internal static class CliApplication
+public static class Program
 {
-    public static int Run(string[] args)
+    public static int Main(string[] args)
     {
         var app = new CommandApp();
         app.Configure(config =>

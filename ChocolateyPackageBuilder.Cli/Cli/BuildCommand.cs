@@ -1,16 +1,12 @@
-using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Text.RegularExpressions;
-using System.Threading;
 using ChocolateyPackageBuilder.Core;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace ChocolateyPackageBuilder.App.Cli;
+namespace ChocolateyPackageBuilder.Cli;
 
-public sealed partial class BuildCommand : Command<BuildCommand.Settings>
+public sealed class BuildCommand : Command<BuildCommand.Settings>
 {
     protected override int Execute([NotNull] CommandContext context, [NotNull] Settings settings,
         CancellationToken cancellationToken)
@@ -24,14 +20,18 @@ public sealed partial class BuildCommand : Command<BuildCommand.Settings>
 
                 settings.InstallerPath = AnsiConsole.Prompt(
                     new TextPrompt<string>("Path to the installer file:")
-                        .Validate(path => File.Exists(path) ? ValidationResult.Success() : ValidationResult.Error("[red]File not found.[/]")));
+                        .Validate(path =>
+                            File.Exists(path)
+                                ? ValidationResult.Success()
+                                : ValidationResult.Error("[red]File not found.[/]")));
 
                 settings.Type = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("Installer type:")
                         .AddChoices("auto", "msi", "inno", "nsis", "scaffold"));
 
-                var defaultName = CreatePackageSlug(Path.GetFileNameWithoutExtension(settings.InstallerPath));
+                var defaultName =
+                    PackageUtility.CreatePackageSlug(Path.GetFileNameWithoutExtension(settings.InstallerPath));
                 settings.Name = AnsiConsole.Prompt(
                     new TextPrompt<string>("Package name:")
                         .DefaultValue(defaultName));
@@ -42,7 +42,7 @@ public sealed partial class BuildCommand : Command<BuildCommand.Settings>
 
                 settings.Maintainer = AnsiConsole.Prompt(
                     new TextPrompt<string>("Maintainer:")
-                        .DefaultValue(DefaultMaintainer()));
+                        .DefaultValue(PackageUtility.DefaultMaintainer()));
 
                 settings.Description = AnsiConsole.Prompt(
                     new TextPrompt<string>("Description:")
@@ -62,11 +62,11 @@ public sealed partial class BuildCommand : Command<BuildCommand.Settings>
 
             var type = ResolveInstallerType(settings.Type, installerPath);
             var packageName = string.IsNullOrWhiteSpace(settings.Name)
-                ? CreatePackageSlug(Path.GetFileNameWithoutExtension(installerPath))
+                ? PackageUtility.CreatePackageSlug(Path.GetFileNameWithoutExtension(installerPath))
                 : settings.Name.Trim();
             var version = string.IsNullOrWhiteSpace(settings.Version) ? "1.0.0" : settings.Version.Trim();
             var maintainer = string.IsNullOrWhiteSpace(settings.Maintainer)
-                ? DefaultMaintainer()
+                ? PackageUtility.DefaultMaintainer()
                 : settings.Maintainer.Trim();
             var description = string.IsNullOrWhiteSpace(settings.Description)
                 ? $"Chocolatey package for {packageName}."
@@ -108,16 +108,6 @@ public sealed partial class BuildCommand : Command<BuildCommand.Settings>
         }
     }
 
-    internal static string CreatePackageSlug(string value)
-    {
-        var slug = SlugUnsafeCharacters().Replace(value.Trim().ToLowerInvariant(), "-").Trim('-');
-        return string.IsNullOrWhiteSpace(slug) ? "package" : slug;
-    }
-
-    internal static string DefaultMaintainer()
-    {
-        return string.IsNullOrWhiteSpace(Environment.UserName) ? "Unknown" : Environment.UserName;
-    }
 
     private static InstallerType ResolveInstallerType(string value, string installerPath)
     {
@@ -132,8 +122,6 @@ public sealed partial class BuildCommand : Command<BuildCommand.Settings>
         };
     }
 
-    [GeneratedRegex("[^a-z0-9.-]+")]
-    private static partial Regex SlugUnsafeCharacters();
 
     public sealed class Settings : CommandSettings
     {

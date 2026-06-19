@@ -1,7 +1,7 @@
 <sukiControls:SukiWindow xmlns="https://github.com/avaloniaui"
                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                         xmlns:vm="using:ChocolateyPackageBuilder.App.ViewModels"
-                         xmlns:features="using:ChocolateyPackageBuilder.App.Features.PackageBuilder"
+                         xmlns:vm="using:ChocolateyPackageBuilder.Gui.ViewModels"
+                         xmlns:features="using:ChocolateyPackageBuilder.Gui.Features.PackageBuilder"
                          xmlns:sukiControls="using:SukiUI.Controls"
                          xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -12,9 +12,9 @@
                          Height="760"
                          MinWidth="980"
                          MinHeight="660"
-                         x:Class="ChocolateyPackageBuilder.App.Views.MainWindow"
+                         x:Class="ChocolateyPackageBuilder.Gui.Views.MainWindow"
                          x:DataType="vm:MainWindowViewModel"
-                         Icon="/Assets/avalonia-logo.ico"
+                         Icon="avares://ChocolateyPackageBuilder.Gui/Assets/avalonia-logo.ico"
                          Title="Chocolatey Package Builder"
                          BackgroundAnimationEnabled="True">
     <features:PackageBuilderView DataContext="{Binding PackageBuilder}" />

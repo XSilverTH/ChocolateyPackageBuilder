@@ -1,11 +1,9 @@
-using System;
 using System.ComponentModel;
-using System.Threading;
 using ChocolateyPackageBuilder.Core;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace ChocolateyPackageBuilder.App.Cli;
+namespace ChocolateyPackageBuilder.Cli;
 
 public sealed class PackCommand : Command<PackCommand.Settings>
 {
@@ -20,8 +18,12 @@ public sealed class PackCommand : Command<PackCommand.Settings>
 
                 settings.DirectoryPath = AnsiConsole.Prompt(
                     new TextPrompt<string>("Path to the scaffolded template directory:")
-                        .Validate(path => System.IO.Directory.Exists(path) ? ValidationResult.Success() : ValidationResult.Error("[red]Directory not found.[/]")));
+                        .Validate(path =>
+                            Directory.Exists(path)
+                                ? ValidationResult.Success()
+                                : ValidationResult.Error("[red]Directory not found.[/]")));
             }
+
             var result = PackageGenerator.PackScaffold(settings.DirectoryPath);
             AnsiConsole.MarkupLine($"[green]Packed scaffold:[/] {Markup.Escape(result.OutputPath)}");
             return 0;

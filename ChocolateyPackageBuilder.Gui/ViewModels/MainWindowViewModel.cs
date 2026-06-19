@@ -1,7 +1,7 @@
-using ChocolateyPackageBuilder.App.Features.PackageBuilder;
-using ChocolateyPackageBuilder.App.Services;
+using ChocolateyPackageBuilder.Gui.Features.PackageBuilder;
+using ChocolateyPackageBuilder.Gui.Services;
 
-namespace ChocolateyPackageBuilder.App.ViewModels;
+namespace ChocolateyPackageBuilder.Gui.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {

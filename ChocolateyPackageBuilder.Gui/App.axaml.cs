@@ -1,11 +1,11 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using ChocolateyPackageBuilder.App.Services;
-using ChocolateyPackageBuilder.App.ViewModels;
-using ChocolateyPackageBuilder.App.Views;
+using ChocolateyPackageBuilder.Gui.Services;
+using ChocolateyPackageBuilder.Gui.ViewModels;
+using ChocolateyPackageBuilder.Gui.Views;
 
-namespace ChocolateyPackageBuilder.App;
+namespace ChocolateyPackageBuilder.Gui;
 
 public class App : Application
 {

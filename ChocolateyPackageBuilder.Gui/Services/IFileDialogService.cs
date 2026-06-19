@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace ChocolateyPackageBuilder.App.Services;
+namespace ChocolateyPackageBuilder.Gui.Services;
 
 public interface IFileDialogService
 {

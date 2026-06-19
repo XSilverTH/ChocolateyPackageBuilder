@@ -1,15 +1,15 @@
 using System;
 using Avalonia;
-using ChocolateyPackageBuilder.App.Cli;
+using ChocolateyPackageBuilder.Gui;
 
-namespace ChocolateyPackageBuilder.App;
+namespace ChocolateyPackageBuilder;
 
-internal sealed class Program
+internal static class Program
 {
     [STAThread]
     public static int Main(string[] args)
     {
-        return args.Length > 0 ? CliApplication.Run(args) : BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        return args.Length > 0 ? Cli.Program.Main(args) : BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 
     private static AppBuilder BuildAvaloniaApp()

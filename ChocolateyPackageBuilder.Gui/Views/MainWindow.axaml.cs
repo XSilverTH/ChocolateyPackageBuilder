@@ -1,6 +1,6 @@
 using SukiUI.Controls;
 
-namespace ChocolateyPackageBuilder.App.Views;
+namespace ChocolateyPackageBuilder.Gui.Views;
 
 public partial class MainWindow : SukiWindow
 {

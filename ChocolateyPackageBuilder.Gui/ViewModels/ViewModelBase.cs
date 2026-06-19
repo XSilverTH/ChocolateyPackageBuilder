@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace ChocolateyPackageBuilder.App.ViewModels;
+namespace ChocolateyPackageBuilder.Gui.ViewModels;
 
 public abstract class ViewModelBase : ObservableObject
 {
