@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:ChocolateyPackageBuilder.Gui"
              xmlns:sukiUi="using:SukiUI"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
              x:Class="ChocolateyPackageBuilder.Gui.App"
              RequestedThemeVariant="Default">
 
@@ -11,5 +12,7 @@
 
     <Application.Styles>
         <sukiUi:SukiTheme ThemeColor="Blue" />
+        <StyleInclude Source="avares://ChocolateyPackageBuilder.Gui/Styles/DesignTokens.axaml" />
+        <materialIcons:MaterialIconStyles />
     </Application.Styles>
 </Application>

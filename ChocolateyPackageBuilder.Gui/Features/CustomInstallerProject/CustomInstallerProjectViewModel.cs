@@ -1,72 +1,78 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ChocolateyPackageBuilder.Core;
 using ChocolateyPackageBuilder.Gui.Services;
+using ChocolateyPackageBuilder.Gui.ViewModels;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace ChocolateyPackageBuilder.Gui.Features.CustomInstallerProject;
 
-public partial class CustomInstallerProjectViewModel : ObservableObject
+public partial class CustomInstallerProjectViewModel : ViewModelBase
 {
     private readonly IFileDialogService _fileDialogService;
+    private readonly SettingsViewModel _settings;
+    private readonly AppStatusViewModel _status;
+    private bool _loading;
+    private readonly Action _closeAction;
 
     [ObservableProperty] private string description = string.Empty;
     [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(BuildProjectCommand))] private bool isBusy;
+    [ObservableProperty] private bool isDirty;
+    [ObservableProperty] private bool isMetadataEditorOpen;
+    [ObservableProperty] private bool isScriptPreviewExpanded;
+    [ObservableProperty] private bool isSidebarExpanded;
     [ObservableProperty] private string maintainer = PackageUtility.DefaultMaintainer();
     [ObservableProperty] private string outputDirectory = Environment.CurrentDirectory;
     [ObservableProperty] private string packageName = string.Empty;
     [ObservableProperty] private string projectPath = string.Empty;
     [ObservableProperty] private string scriptPreview = "Add project files and actions to preview the generated Chocolatey install script.";
-    [ObservableProperty] private string statusMessage = "Ready.";
     [ObservableProperty] private string version = "1.0.0";
 
-    public CustomInstallerProjectViewModel(IFileDialogService fileDialogService)
+    public CustomInstallerProjectViewModel(
+        IFileDialogService fileDialogService,
+        AppStatusViewModel status,
+        SettingsViewModel settings,
+        ChocolateyPackageBuilder.Core.CustomInstallerProject project,
+        string projectPath,
+        string outputDirectory,
+        Action closeAction)
     {
+        _closeAction = closeAction;
         _fileDialogService = fileDialogService;
+        _status = status;
+        _settings = settings;
+        IsSidebarExpanded = settings.RememberWorkspaceLayout ? settings.ProjectSidebarExpanded : true;
+        IsScriptPreviewExpanded = settings.RememberWorkspaceLayout ? settings.ScriptPreviewExpanded : true;
+        LoadProject(project);
+        ProjectPath = projectPath;
+        OutputDirectory = outputDirectory;
+        IsDirty = false;
+        _status.SetSuccess($"Opened project: {projectPath}");
     }
+
+    [RelayCommand]
+    private void CloseProject() => _closeAction();
 
     public ObservableCollection<ProjectFileItemViewModel> ProjectFiles { get; } = [];
     public ObservableCollection<ActionItemViewModel> Actions { get; } = [];
+    public ActionPathKind[] ActionPathKinds { get; } = [ActionPathKind.PackageFile, ActionPathKind.Literal];
+    public IReadOnlyList<ComponentDefinitionViewModel> Components { get; } =
+    [
+        new ComponentDefinitionViewModel(InstallActionKind.CopyFile, "Copy file", "Copy a bundled project file to an install path."),
+        new ComponentDefinitionViewModel(InstallActionKind.RunFile, "Run file", "Launch a bundled or literal file with arguments.")
+    ];
+    public double SidebarWidth => IsSidebarExpanded ? 280 : 56;
+    public double ScriptPreviewWidth => IsScriptPreviewExpanded ? 420 : 44;
+    public bool IsSidebarCollapsed => !IsSidebarExpanded;
+    public bool IsScriptPreviewCollapsed => !IsScriptPreviewExpanded;
 
-    [RelayCommand]
-    private void NewProject()
-    {
-        ProjectPath = string.Empty;
-        PackageName = string.Empty;
-        Version = "1.0.0";
-        Maintainer = PackageUtility.DefaultMaintainer();
-        Description = string.Empty;
-        OutputDirectory = Environment.CurrentDirectory;
-        ProjectFiles.Clear();
-        Actions.Clear();
-        StatusMessage = "New project.";
-        RefreshScriptPreview();
-    }
-
-    [RelayCommand]
-    private async Task OpenProjectAsync()
-    {
-        var path = await _fileDialogService.PickProjectFileAsync();
-        if (string.IsNullOrWhiteSpace(path)) return;
-
-        try
-        {
-            var project = await CustomInstallerProjectStore.LoadAsync(path);
-            LoadProject(project);
-            ProjectPath = path;
-            StatusMessage = $"Opened project: {path}";
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = ex.Message;
-        }
-    }
 
     [RelayCommand]
     private async Task SaveProjectAsync()
@@ -97,7 +103,7 @@ public partial class CustomInstallerProjectViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(ProjectPath))
         {
-            StatusMessage = "Save the project before adding files.";
+            _status.SetError("Save the project before adding files.");
             return;
         }
 
@@ -115,18 +121,21 @@ public partial class CustomInstallerProjectViewModel : ObservableObject
             File.Copy(selectedPath, destinationPath, overwrite: false);
 
             var relativePath = $"files/{fileName}";
-            ProjectFiles.Add(new ProjectFileItemViewModel
+            var file = new ProjectFileItemViewModel
             {
                 Id = CreateUniqueFileId(Path.GetFileNameWithoutExtension(fileName)),
                 SourcePath = relativePath,
                 PackagePath = relativePath
-            });
-            StatusMessage = $"Added file: {fileName}";
+            };
+            TrackProjectFile(file);
+            ProjectFiles.Add(file);
+            MarkDirty();
+            _status.SetSuccess($"Added file: {fileName}", _settings.VerboseStatus ? relativePath : string.Empty);
             RefreshScriptPreview();
         }
         catch (Exception ex)
         {
-            StatusMessage = ex.Message;
+            _status.SetError(ex.Message);
         }
     }
 
@@ -135,26 +144,19 @@ public partial class CustomInstallerProjectViewModel : ObservableObject
     {
         if (file is null) return;
         ProjectFiles.Remove(file);
+        MarkDirty();
         RefreshScriptPreview();
     }
 
     [RelayCommand]
-    private void AddCopyAction()
+    private void AddComponent(ComponentDefinitionViewModel? component)
     {
-        var firstFileId = ProjectFiles.FirstOrDefault()?.Id ?? string.Empty;
-        var action = new ActionItemViewModel { Kind = InstallActionKind.CopyFile, SourceKind = ActionPathKind.PackageFile, SourceValue = firstFileId, DestinationKind = ActionPathKind.Literal, Overwrite = true };
+        if (component is null) return;
+        var action = CreateDefaultAction(component.Kind);
+        action.IsExpanded = true;
         TrackAction(action);
         Actions.Add(action);
-        RefreshScriptPreview();
-    }
-
-    [RelayCommand]
-    private void AddRunAction()
-    {
-        var firstFileId = ProjectFiles.FirstOrDefault()?.Id ?? string.Empty;
-        var action = new ActionItemViewModel { Kind = InstallActionKind.RunFile, SourceKind = ActionPathKind.PackageFile, SourceValue = firstFileId, WaitForExit = true, ValidExitCodesText = "0" };
-        TrackAction(action);
-        Actions.Add(action);
+        MarkDirty();
         RefreshScriptPreview();
     }
 
@@ -163,26 +165,7 @@ public partial class CustomInstallerProjectViewModel : ObservableObject
     {
         if (action is null) return;
         Actions.Remove(action);
-        RefreshScriptPreview();
-    }
-
-    [RelayCommand]
-    private void MoveActionUp(ActionItemViewModel? action)
-    {
-        if (action is null) return;
-        var index = Actions.IndexOf(action);
-        if (index <= 0) return;
-        Actions.Move(index, index - 1);
-        RefreshScriptPreview();
-    }
-
-    [RelayCommand]
-    private void MoveActionDown(ActionItemViewModel? action)
-    {
-        if (action is null) return;
-        var index = Actions.IndexOf(action);
-        if (index < 0 || index >= Actions.Count - 1) return;
-        Actions.Move(index, index + 1);
+        MarkDirty();
         RefreshScriptPreview();
     }
 
@@ -196,17 +179,17 @@ public partial class CustomInstallerProjectViewModel : ObservableObject
         }
 
         IsBusy = true;
-        StatusMessage = "Building project package...";
+        _status.SetBusy("Building project package...", _settings.VerboseStatus ? ProjectPath : string.Empty);
         try
         {
-            await SaveProjectToAsync(ProjectPath);
+            await SaveProjectToAsync(ProjectPath, reportStatus: false);
             var result = await PackageGenerator.PackCustomProjectAsync(new CustomProjectPackRequest(ProjectPath, OutputDirectory));
-            StatusMessage = $"Built project package: {result.OutputPath}";
+            _status.SetSuccess($"Built project package: {result.OutputPath}");
             RefreshScriptPreview();
         }
         catch (Exception ex)
         {
-            StatusMessage = ex.Message;
+            _status.SetError(ex.Message);
         }
         finally
         {
@@ -221,25 +204,76 @@ public partial class CustomInstallerProjectViewModel : ObservableObject
         if (!string.IsNullOrWhiteSpace(path)) OutputDirectory = path;
     }
 
-    public ActionPathKind[] ActionPathKinds { get; } = [ActionPathKind.PackageFile, ActionPathKind.Literal];
-
-    private bool CanBuildProject()
+    [RelayCommand]
+    private void ToggleSidebar()
     {
-        return !IsBusy && !string.IsNullOrWhiteSpace(OutputDirectory);
+        IsSidebarExpanded = !IsSidebarExpanded;
+        if (_settings.RememberWorkspaceLayout) _settings.ProjectSidebarExpanded = IsSidebarExpanded;
     }
 
-    private async Task SaveProjectToAsync(string path)
+    [RelayCommand]
+    private void ToggleScriptPreview()
     {
-        var project = CreateProject();
-        await CustomInstallerProjectStore.SaveAsync(path, project);
-        ProjectPath = path;
-        StatusMessage = $"Saved project: {path}";
+        IsScriptPreviewExpanded = !IsScriptPreviewExpanded;
+        if (_settings.RememberWorkspaceLayout) _settings.ScriptPreviewExpanded = IsScriptPreviewExpanded;
+    }
+    partial void OnIsSidebarExpandedChanged(bool value)
+    {
+        OnPropertyChanged(nameof(SidebarWidth));
+        OnPropertyChanged(nameof(IsSidebarCollapsed));
+    }
+
+    partial void OnIsScriptPreviewExpandedChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ScriptPreviewWidth));
+        OnPropertyChanged(nameof(IsScriptPreviewCollapsed));
+    }
+
+
+    [RelayCommand]
+    private void OpenMetadataEditor() => IsMetadataEditorOpen = true;
+
+    [RelayCommand]
+    private void CloseMetadataEditor() => IsMetadataEditorOpen = false;
+
+    public void MoveActionBefore(ActionItemViewModel? dragged, ActionItemViewModel? target)
+    {
+        if (dragged is null || target is null || ReferenceEquals(dragged, target)) return;
+        var oldIndex = Actions.IndexOf(dragged);
+        var targetIndex = Actions.IndexOf(target);
+        if (oldIndex < 0 || targetIndex < 0 || oldIndex == targetIndex) return;
+        if (oldIndex < targetIndex) targetIndex--;
+        Actions.Move(oldIndex, targetIndex);
+        MarkDirty();
         RefreshScriptPreview();
+        if (_settings.VerboseStatus) _status.SetSuccess("Action moved.", $"Moved action to position {targetIndex + 1}.");
     }
 
-    private global::ChocolateyPackageBuilder.Core.CustomInstallerProject CreateProject()
+    public void MoveActionToEnd(ActionItemViewModel? dragged)
     {
-        return new global::ChocolateyPackageBuilder.Core.CustomInstallerProject
+        if (dragged is null) return;
+        var oldIndex = Actions.IndexOf(dragged);
+        if (oldIndex < 0 || oldIndex == Actions.Count - 1) return;
+        Actions.Move(oldIndex, Actions.Count - 1);
+        MarkDirty();
+        RefreshScriptPreview();
+        if (_settings.VerboseStatus) _status.SetSuccess("Action moved.", $"Moved action to position {Actions.Count}.");
+    }
+
+    private bool CanBuildProject() => !IsBusy && !string.IsNullOrWhiteSpace(OutputDirectory);
+
+    private async Task SaveProjectToAsync(string path, bool reportStatus = true)
+    {
+        await CustomInstallerProjectStore.SaveAsync(path, CreateProject());
+        ProjectPath = path;
+        IsDirty = false;
+        RefreshScriptPreview();
+        if (reportStatus) _status.SetSuccess($"Saved project: {path}");
+    }
+
+    private ChocolateyPackageBuilder.Core.CustomInstallerProject CreateProject()
+    {
+        return new ChocolateyPackageBuilder.Core.CustomInstallerProject
         {
             Package = new PackageMetadata { Name = PackageName.Trim(), Version = Version.Trim(), Maintainer = Maintainer.Trim(), Description = Description.Trim() },
             Files = ProjectFiles.Select(file => new ProjectFile { Id = file.Id.Trim(), SourcePath = file.SourcePath.Trim(), PackagePath = file.PackagePath.Trim() }).ToList(),
@@ -262,20 +296,25 @@ public partial class CustomInstallerProjectViewModel : ObservableObject
         return action;
     }
 
-    private void LoadProject(global::ChocolateyPackageBuilder.Core.CustomInstallerProject project)
+    private void LoadProject(ChocolateyPackageBuilder.Core.CustomInstallerProject project)
     {
+        _loading = true;
         PackageName = project.Package.Name;
         Version = project.Package.Version;
         Maintainer = project.Package.Maintainer;
         Description = project.Package.Description;
         ProjectFiles.Clear();
         foreach (var file in project.Files)
-            ProjectFiles.Add(new ProjectFileItemViewModel { Id = file.Id, SourcePath = file.SourcePath, PackagePath = file.PackagePath });
+        {
+            var item = new ProjectFileItemViewModel { Id = file.Id, SourcePath = file.SourcePath, PackagePath = file.PackagePath };
+            TrackProjectFile(item);
+            ProjectFiles.Add(item);
+        }
 
         Actions.Clear();
         foreach (var action in project.Actions)
         {
-            var item = new ActionItemViewModel { Kind = action.Kind, Arguments = action.Arguments, WaitForExit = action.WaitForExit, ValidExitCodesText = string.Join(",", action.ValidExitCodes), Overwrite = action.Overwrite };
+            var item = new ActionItemViewModel { Kind = action.Kind, Arguments = action.Arguments, WaitForExit = action.WaitForExit, ValidExitCodesText = string.Join(",", action.ValidExitCodes), Overwrite = action.Overwrite, IsExpanded = false };
             if (action.Kind == InstallActionKind.CopyFile)
             {
                 item.SourceKind = action.Source.Kind;
@@ -291,18 +330,64 @@ public partial class CustomInstallerProjectViewModel : ObservableObject
             TrackAction(item);
             Actions.Add(item);
         }
+        _loading = false;
         RefreshScriptPreview();
+    }
+
+    private void TrackProjectFile(ProjectFileItemViewModel file)
+    {
+        file.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName is nameof(ProjectFileItemViewModel.Id) or nameof(ProjectFileItemViewModel.PackagePath)) MarkDirty();
+            RefreshScriptPreview();
+        };
     }
 
     private void TrackAction(ActionItemViewModel action)
     {
-        action.PropertyChanged += (_, _) => RefreshScriptPreview();
+        action.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName is not nameof(ActionItemViewModel.IsExpanded)) MarkDirty();
+            RefreshScriptPreview();
+        };
     }
 
-    partial void OnPackageNameChanged(string value) => RefreshScriptPreview();
-    partial void OnVersionChanged(string value) => RefreshScriptPreview();
-    partial void OnMaintainerChanged(string value) => RefreshScriptPreview();
-    partial void OnDescriptionChanged(string value) => RefreshScriptPreview();
+    private ActionItemViewModel CreateDefaultAction(InstallActionKind kind)
+    {
+        var firstFileId = ProjectFiles.FirstOrDefault()?.Id ?? string.Empty;
+        return kind == InstallActionKind.CopyFile
+            ? new ActionItemViewModel { Kind = InstallActionKind.CopyFile, SourceKind = ActionPathKind.PackageFile, SourceValue = firstFileId, DestinationKind = ActionPathKind.Literal, Overwrite = true }
+            : new ActionItemViewModel { Kind = InstallActionKind.RunFile, SourceKind = ActionPathKind.PackageFile, SourceValue = firstFileId, WaitForExit = true, ValidExitCodesText = "0" };
+    }
+
+    partial void OnPackageNameChanged(string value)
+    {
+        MarkDirty();
+        RefreshScriptPreview();
+    }
+
+    partial void OnVersionChanged(string value)
+    {
+        MarkDirty();
+        RefreshScriptPreview();
+    }
+
+    partial void OnMaintainerChanged(string value)
+    {
+        MarkDirty();
+        RefreshScriptPreview();
+    }
+
+    partial void OnDescriptionChanged(string value)
+    {
+        MarkDirty();
+        RefreshScriptPreview();
+    }
+
+    private void MarkDirty()
+    {
+        if (!_loading) IsDirty = true;
+    }
 
     private void RefreshScriptPreview()
     {
@@ -349,8 +434,8 @@ public partial class CustomInstallerProjectViewModel : ObservableObject
 public partial class ProjectFileItemViewModel : ObservableObject
 {
     [ObservableProperty] private string id = string.Empty;
-    [ObservableProperty] private string sourcePath = string.Empty;
     [ObservableProperty] private string packagePath = string.Empty;
+    [ObservableProperty] private string sourcePath = string.Empty;
 
     public string DisplayName => string.IsNullOrWhiteSpace(Id) ? SourcePath : Id;
 
@@ -363,6 +448,7 @@ public partial class ActionItemViewModel : ObservableObject
     [ObservableProperty] private string arguments = string.Empty;
     [ObservableProperty] private ActionPathKind destinationKind = ActionPathKind.Literal;
     [ObservableProperty] private string destinationValue = string.Empty;
+    [ObservableProperty] private bool isExpanded = true;
     [ObservableProperty] private InstallActionKind kind;
     [ObservableProperty] private bool overwrite = true;
     [ObservableProperty] private ActionPathKind sourceKind = ActionPathKind.PackageFile;
@@ -370,12 +456,17 @@ public partial class ActionItemViewModel : ObservableObject
     [ObservableProperty] private string validExitCodesText = "0";
     [ObservableProperty] private bool waitForExit = true;
 
-    public string Summary => Kind == InstallActionKind.CopyFile
-        ? $"Copy {SourceValue} to {DestinationValue}"
-        : $"Run {SourceValue} {Arguments}".Trim();
+    public bool IsCopyFile => Kind == InstallActionKind.CopyFile;
+    public bool IsRunFile => Kind == InstallActionKind.RunFile;
+    public string Summary => Kind == InstallActionKind.CopyFile ? $"Copy {SourceValue} to {DestinationValue}" : $"Run {SourceValue} {Arguments}".Trim();
 
     partial void OnArgumentsChanged(string value) => OnPropertyChanged(nameof(Summary));
     partial void OnDestinationValueChanged(string value) => OnPropertyChanged(nameof(Summary));
-    partial void OnKindChanged(InstallActionKind value) => OnPropertyChanged(nameof(Summary));
+    partial void OnKindChanged(InstallActionKind value)
+    {
+        OnPropertyChanged(nameof(IsCopyFile));
+        OnPropertyChanged(nameof(IsRunFile));
+        OnPropertyChanged(nameof(Summary));
+    }
     partial void OnSourceValueChanged(string value) => OnPropertyChanged(nameof(Summary));
 }

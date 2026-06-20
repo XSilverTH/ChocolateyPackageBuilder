@@ -1,0 +1,10 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sukiControls="using:SukiUI.Controls">
+    <sukiControls:SukiSideMenu UseCustomContent="True">
+        <sukiControls:SukiSideMenu.Items>
+            <sukiControls:SukiSideMenuItem Header="Item 1" />
+        </sukiControls:SukiSideMenu.Items>
+        <TextBlock Text="Custom Content Area" HorizontalAlignment="Center" VerticalAlignment="Center" />
+    </sukiControls:SukiSideMenu>
+</Window>

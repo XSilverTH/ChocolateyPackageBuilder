@@ -1,0 +1,87 @@
+<Styles xmlns="https://github.com/avaloniaui">
+    <Design.PreviewWith>
+        <Border Padding="24" />
+    </Design.PreviewWith>
+
+    <Style Selector="UserControl.CpbPage">
+        <Setter Property="Margin" Value="24" />
+    </Style>
+
+    <Style Selector="Border.CpbSurface">
+        <Setter Property="Background" Value="{DynamicResource SukiLowBackgroundBrush}" />
+        <Setter Property="CornerRadius" Value="18" />
+    </Style>
+
+    <Style Selector="Border.CpbCard">
+        <Setter Property="Padding" Value="20" />
+        <Setter Property="CornerRadius" Value="18" />
+        <Setter Property="Background" Value="{DynamicResource SukiLowBackgroundBrush}" />
+    </Style>
+
+    <Style Selector="Border.CpbToolbar">
+        <Setter Property="Padding" Value="14" />
+        <Setter Property="CornerRadius" Value="18" />
+        <Setter Property="Background" Value="{DynamicResource SukiLowBackgroundBrush}" />
+    </Style>
+
+    <Style Selector="Button.CpbIconButton">
+        <Setter Property="Width" Value="36" />
+        <Setter Property="Height" Value="36" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Border.CpbSidebar">
+        <Setter Property="Width" Value="280" />
+        <Setter Property="Padding" Value="14" />
+        <Setter Property="CornerRadius" Value="18" />
+        <Setter Property="Background" Value="{DynamicResource SukiLowBackgroundBrush}" />
+    </Style>
+
+    <Style Selector="Border.CpbStepPill">
+        <Setter Property="Padding" Value="14" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Background" Value="{DynamicResource SukiLowBackgroundBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.2" />
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Border.CpbStepPill.current">
+        <Setter Property="Background" Value="{DynamicResource SukiCardBackground}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SukiPrimaryColor}" />
+    </Style>
+    <Style Selector="Border.CpbStepPill.complete">
+        <Setter Property="Opacity" Value="0.8" />
+    </Style>
+
+    <Style Selector="Border.CpbComponentCard">
+        <Setter Property="Padding" Value="16" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Background" Value="{DynamicResource SukiLowBackgroundBrush}" />
+    </Style>
+
+    <Style Selector="Border.CpbActionCard">
+        <Setter Property="Padding" Value="16" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Background" Value="{DynamicResource SukiLowBackgroundBrush}" />
+    </Style>
+
+    <Style Selector="Border.CpbStatusBar">
+        <Setter Property="Height" Value="34" />
+        <Setter Property="Padding" Value="14,0" />
+        <Setter Property="Background" Value="{DynamicResource SukiLowBackgroundBrush}" />
+    </Style>
+
+    <Style Selector="TextBox.CpbCodePreview">
+        <Setter Property="FontFamily" Value="Consolas, monospace" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+        <Setter Property="AcceptsReturn" Value="True" />
+        <Setter Property="IsReadOnly" Value="True" />
+    </Style>
+</Styles>

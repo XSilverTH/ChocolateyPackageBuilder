@@ -24,6 +24,15 @@ public static class ScriptGenerator
             case InstallerType.Unknown:
             default:
                 silentArgs = "'/S' # TODO: Verify or update these silent arguments";
+                var ext = System.IO.Path.GetExtension(installerFileName);
+                if (!string.IsNullOrEmpty(ext))
+                {
+                    var trimmedExt = ext.TrimStart('.').ToLowerInvariant();
+                    if (!string.IsNullOrEmpty(trimmedExt))
+                    {
+                        fileType = trimmedExt;
+                    }
+                }
                 break;
         }
 

@@ -1,0 +1,6 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sukiControls="using:SukiUI.Controls"
+        xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia">
+    <sukiControls:SukiSideMenu />
+</Window>

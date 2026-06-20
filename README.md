@@ -84,7 +84,7 @@ dotnet run --project ChocolateyPackageBuilder -- pack path/to/package-template -
 
 ### Custom installer projects
 
-The GUI's **Custom project** tab is the primary workflow for project-based installers. Create or open a `.cpbproj`, add files to the project, stack actions such as copying a bundled file or running a file with arguments, then save and build the project package.
+The GUI's **New custom project** wizard creates `.cpbproj` files, then opens a dedicated workspace for adding bundled files, stacking install components such as copy/run actions, previewing the generated script, saving, and building the project package.
 
 Saved projects are portable: GUI-added files are copied under the project `files/` directory, while literal action paths such as `%ProgramFiles%\Vendor\app.exe` are evaluated on the installing computer.
 
@@ -96,7 +96,7 @@ dotnet run --project ChocolateyPackageBuilder -- pack path/to/project.cpbproj --
 
 ## GUI
 
-The GUI opens on the custom project editor for action-based installers. The **Quick installer** tab keeps the single-installer workflow for selecting an installer, detecting its type, previewing the generated Chocolatey install script, and building a package or scaffold.
+The GUI opens on a quick installer wizard for selecting an installer, detecting its type, entering metadata, choosing output, reviewing the generated script, and building a package or scaffold. Custom projects use the same wizard pattern for creation and a separate IDE-like workspace with a collapsible file sidebar, component stacker, script preview, settings drawer, and global bottom status bar.
 
 ## Project layout
 

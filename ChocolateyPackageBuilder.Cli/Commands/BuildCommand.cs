@@ -116,7 +116,7 @@ public sealed class BuildCommand : AsyncCommand<BuildCommand.Settings>
             "inno" => InstallerType.InnoSetup,
             "nsis" => InstallerType.Nsis,
             "scaffold" => InstallerType.Unknown,
-            _ => throw new ArgumentException("--type must be one of: auto, msi, inno, nsis, scaffold.")
+            _ => throw new InvalidOperationException("Invalid installer type.")
         };
     }
 
@@ -150,5 +150,21 @@ public sealed class BuildCommand : AsyncCommand<BuildCommand.Settings>
         [CommandOption("-t|--type")]
         [Description("Installer type: auto, msi, inno, nsis, or scaffold.")]
         public string Type { get; set; } = "auto";
+
+        public override ValidationResult Validate()
+        {
+            if (string.IsNullOrWhiteSpace(Type))
+            {
+                return ValidationResult.Error("Installer type is required.");
+            }
+
+            var typeLower = Type.Trim().ToLowerInvariant();
+            if (typeLower != "auto" && typeLower != "msi" && typeLower != "inno" && typeLower != "nsis" && typeLower != "scaffold")
+            {
+                return ValidationResult.Error("--type must be one of: auto, msi, inno, nsis, scaffold.");
+            }
+
+            return base.Validate();
+        }
     }
 }

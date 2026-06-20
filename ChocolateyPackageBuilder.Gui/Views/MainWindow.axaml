@@ -1,9 +1,8 @@
 <sukiControls:SukiWindow xmlns="https://github.com/avaloniaui"
                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                          xmlns:vm="using:ChocolateyPackageBuilder.Gui.ViewModels"
-                         xmlns:quick="using:ChocolateyPackageBuilder.Gui.Features.PackageBuilder"
-                         xmlns:custom="using:ChocolateyPackageBuilder.Gui.Features.CustomInstallerProject"
                          xmlns:sukiControls="using:SukiUI.Controls"
+                         xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
                          xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                          mc:Ignorable="d"
@@ -18,12 +17,71 @@
                          Icon="avares://ChocolateyPackageBuilder.Gui/Assets/avalonia-logo.ico"
                          Title="Chocolatey Package Builder"
                          BackgroundAnimationEnabled="True">
-    <TabControl>
-        <TabItem Header="Custom project">
-            <custom:CustomInstallerProjectView DataContext="{Binding CustomInstallerProject}" />
-        </TabItem>
-        <TabItem Header="Quick installer">
-            <quick:PackageBuilderView DataContext="{Binding PackageBuilder}" />
-        </TabItem>
-    </TabControl>
+    <Grid RowDefinitions="*,Auto">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
+            <sukiControls:SukiSideMenu Grid.Column="0" UseCustomContent="True" IsMenuExpanded="False" SidebarToggleEnabled="True">
+            <sukiControls:SukiSideMenu.Items>
+                <sukiControls:SukiSideMenuItem Header="Quick installer" IsSelected="{Binding IsQuickInstallerActive, Mode=OneWay}" Tapped="QuickInstaller_Tapped" Icon="{materialIcons:MaterialIconExt Kind=LightningBolt, IconSize=24}" />
+                <sukiControls:SukiSideMenuItem Header="Custom project" IsSelected="{Binding IsCustomProjectActive, Mode=OneWay}" Tapped="CurrentProject_Tapped" Icon="{materialIcons:MaterialIconExt Kind=FileDocumentEditOutline, IconSize=24}" />
+            </sukiControls:SukiSideMenu.Items>
+            </sukiControls:SukiSideMenu>
+
+            <Button Grid.Column="0" Classes="Basic" Command="{Binding OpenSettingsCommand}" ToolTip.Tip="Settings" Width="40" Height="40" CornerRadius="20" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,16">
+                <materialIcons:MaterialIcon Kind="CogOutline" Width="24" Height="24" Foreground="{Binding $parent[Window].Foreground}" />
+            </Button>
+
+            <Grid Grid.Column="1">
+                <ContentControl Content="{Binding CurrentPage}" />
+
+                <Border HorizontalAlignment="Right" Width="360" Margin="0,24,24,24" Padding="24" Classes="settingsFlyout" Classes.open="{Binding IsSettingsOpen}" IsHitTestVisible="{Binding IsSettingsOpen}" Background="{DynamicResource SukiCardBackground}" CornerRadius="18" BorderBrush="{DynamicResource SukiBorderBrush}" BorderThickness="1">
+                    <Border.Styles>
+                        <Style Selector="Border.settingsFlyout">
+                            <Setter Property="Opacity" Value="0" />
+                            <Setter Property="RenderTransform" Value="translateX(20px)" />
+                            <Setter Property="Transitions">
+                                <Transitions>
+                                    <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseOut" />
+                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" Easing="CubicEaseOut" />
+                                </Transitions>
+                            </Setter>
+                        </Style>
+                        <Style Selector="Border.settingsFlyout.open">
+                            <Setter Property="Opacity" Value="1" />
+                            <Setter Property="RenderTransform" Value="translateX(0px)" />
+                        </Style>
+                    </Border.Styles>
+                    <Grid RowDefinitions="Auto,*">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Settings" FontSize="22" FontWeight="SemiBold" />
+                                <TextBlock Text="Application preferences" Opacity="0.7" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Classes="CpbIconButton" Command="{Binding CloseSettingsCommand}" ToolTip.Tip="Close settings">
+                                <materialIcons:MaterialIcon Kind="Close" />
+                            </Button>
+                        </Grid>
+
+                        <StackPanel Grid.Row="1" Margin="0,24,0,0" Spacing="16">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Theme" FontWeight="SemiBold" />
+                                <ComboBox ItemsSource="{Binding Settings.ThemeModes}" SelectedItem="{Binding Settings.ThemeMode}" HorizontalAlignment="Stretch" />
+                            </StackPanel>
+                            <CheckBox Content="Verbose status" IsChecked="{Binding Settings.VerboseStatus}" />
+                            <CheckBox Content="Remember workspace layout" IsChecked="{Binding Settings.RememberWorkspaceLayout}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+            </Grid>
+        <Border Grid.Row="1" Classes="CpbStatusBar">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
+                <ProgressBar Width="120" Height="5" IsIndeterminate="True" IsVisible="{Binding Status.IsBusy}" VerticalAlignment="Center" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                    <TextBlock Text="{Binding Status.Message}" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding Status.Detail}" IsVisible="{Binding Settings.VerboseStatus}" Opacity="0.75" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" Text="Error" IsVisible="{Binding Status.IsError}" Foreground="Tomato" FontWeight="SemiBold" />
+            </Grid>
+        </Border>
+    </Grid>
 </sukiControls:SukiWindow>

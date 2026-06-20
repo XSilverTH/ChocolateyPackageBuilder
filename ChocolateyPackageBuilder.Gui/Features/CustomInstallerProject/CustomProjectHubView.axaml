@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:ChocolateyPackageBuilder.Gui.Features.CustomInstallerProject"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Class="ChocolateyPackageBuilder.Gui.Features.CustomInstallerProject.CustomProjectHubView"
+             x:DataType="vm:CustomProjectHubViewModel">
+    <Grid>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="24">
+            <TextBlock Text="Custom Project" FontSize="32" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,16" />
+            
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="24">
+                <Button Grid.Column="0" Classes="Basic" Command="{Binding NewProjectCommand}" CornerRadius="18">
+                    <Border Classes="CpbCard" Width="260" Height="200">
+                        <StackPanel Spacing="16" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12">
+                            <materialIcons:MaterialIcon Kind="FileDocumentPlusOutline" Width="64" Height="64" Foreground="{Binding $parent[Window].Foreground}" />
+                            <TextBlock Text="New custom project" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{Binding $parent[Window].Foreground}" />
+                            <TextBlock Text="Create a new chocolatey package project" Opacity="0.7" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="220" Foreground="{Binding $parent[Window].Foreground}" />
+                        </StackPanel>
+                    </Border>
+                </Button>
+                
+                <Button Grid.Column="1" Classes="Basic" Command="{Binding OpenProjectCommand}" CornerRadius="18">
+                    <Border Classes="CpbCard" Width="260" Height="200">
+                        <StackPanel Spacing="16" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12">
+                            <materialIcons:MaterialIcon Kind="FolderOpenOutline" Width="64" Height="64" Foreground="{Binding $parent[Window].Foreground}" />
+                            <TextBlock Text="Open custom project" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{Binding $parent[Window].Foreground}" />
+                            <TextBlock Text="Open an existing .cpbproj file" Opacity="0.7" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="220" Foreground="{Binding $parent[Window].Foreground}" />
+                        </StackPanel>
+                    </Border>
+                </Button>
+            </Grid>
+        </StackPanel>
+    </Grid>
+</UserControl>
