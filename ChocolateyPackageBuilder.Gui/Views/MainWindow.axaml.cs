@@ -11,9 +11,13 @@ public partial class MainWindow : SukiWindow
         InitializeComponent();
     }
 
-    private void QuickInstaller_Tapped(object? sender, TappedEventArgs e) => 
+    private void QuickInstaller_Tapped(object? sender, TappedEventArgs e)
+    {
         ((MainWindowViewModel)DataContext!).ShowQuickInstallerCommand.Execute(null);
-        
-    private void CurrentProject_Tapped(object? sender, TappedEventArgs e) => 
+    }
+
+    private void CurrentProject_Tapped(object? sender, TappedEventArgs e)
+    {
         ((MainWindowViewModel)DataContext!).ShowCustomProjectCommand.Execute(null);
+    }
 }

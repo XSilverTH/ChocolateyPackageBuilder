@@ -1,4 +1,7 @@
 using ChocolateyPackageBuilder.Cli.Commands;
+using ChocolateyPackageBuilder.Cli.Infrastructure;
+using ChocolateyPackageBuilder.Core;
+using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console.Cli;
 
 namespace ChocolateyPackageBuilder.Cli;
@@ -7,7 +10,11 @@ public static class Program
 {
     public static int Main(string[] args)
     {
-        var app = new CommandApp();
+        var services = new ServiceCollection();
+        services.AddChocolateyPackageBuilderCore();
+
+        var registrar = new TypeRegistrar(services);
+        var app = new CommandApp(registrar);
         app.Configure(config =>
         {
             config.SetApplicationName("ChocolateyPackageBuilder");

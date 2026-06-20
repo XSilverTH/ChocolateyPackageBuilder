@@ -1,0 +1,156 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ChocolateyPackageBuilder.Gui.ViewModels"
+             xmlns:shared="using:ChocolateyPackageBuilder.Gui.ViewModels"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Name="Root"
+             mc:Ignorable="d"
+             d:DesignWidth="1200"
+             d:DesignHeight="760"
+             x:Class="ChocolateyPackageBuilder.Gui.Views.PackageBuilderView"
+             x:DataType="vm:PackageBuilderViewModel"
+             Classes="CpbPage">
+    <Grid ColumnDefinitions="260,*" ColumnSpacing="24">
+        <Border Classes="CpbCard">
+            <StackPanel Spacing="18">
+                <TextBlock Text="Quick installer" FontSize="24" FontWeight="SemiBold" />
+                <ItemsControl ItemsSource="{Binding Steps}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="shared:WizardStepItemViewModel">
+                            <Button Classes="Basic" Foreground="{Binding $parent[Window].Foreground}" Margin="0,0,0,10"
+                                    Padding="0"
+                                    Command="{Binding #Root.((vm:PackageBuilderViewModel)DataContext).GoToStepCommand}"
+                                    CommandParameter="{Binding .}">
+                                <Border Classes="CpbStepPill" Classes.current="{Binding IsCurrent}"
+                                        Classes.complete="{Binding IsComplete}" HorizontalAlignment="Stretch">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding Subtitle}" FontSize="12" Opacity="0.7"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Border>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Column="1" Classes="CpbCard" Padding="24">
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="18">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{Binding CurrentStepTitle}" FontSize="26" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding CurrentStepSubtitle}" Opacity="0.72" />
+                </StackPanel>
+
+                <Grid Grid.Row="1">
+                    <StackPanel IsVisible="{Binding IsInstallerStep}" Spacing="18">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <TextBox Text="{Binding InstallerPath}" PlaceholderText="Path to .exe or .msi" />
+                            <Button Grid.Column="1" Content="Browse" Command="{Binding BrowseInstallerCommand}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="14">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Detected type" FontWeight="SemiBold" />
+                                <Border Padding="12" CornerRadius="12"
+                                        Background="{DynamicResource SukiLowBackgroundBrush}">
+                                    <TextBlock Text="{Binding DetectedInstallerType}" />
+                                </Border>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="6">
+                                <TextBlock Text="Build as" FontWeight="SemiBold" />
+                                <ComboBox ItemsSource="{Binding InstallerTypes}"
+                                          SelectedItem="{Binding SelectedInstallerType}" HorizontalAlignment="Stretch" />
+                            </StackPanel>
+                        </Grid>
+                        <Button Content="Detect again" Command="{Binding DetectInstallerCommand}"
+                                HorizontalAlignment="Left" />
+                    </StackPanel>
+
+                    <StackPanel IsVisible="{Binding IsMetadataStep}" Spacing="14">
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="14">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Package name" FontWeight="SemiBold" />
+                                <TextBox Text="{Binding PackageName}" PlaceholderText="my-package" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Spacing="6">
+                                <TextBlock Text="Version" FontWeight="SemiBold" />
+                                <TextBox Text="{Binding Version}" PlaceholderText="1.0.0" />
+                            </StackPanel>
+                        </Grid>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Maintainer" FontWeight="SemiBold" />
+                            <TextBox Text="{Binding Maintainer}" />
+                        </StackPanel>
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Description" FontWeight="SemiBold" />
+                            <TextBox Text="{Binding Description}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel IsVisible="{Binding IsOutputStep}" Spacing="18">
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="Output directory" FontWeight="SemiBold" />
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <TextBox Text="{Binding OutputDirectory}" />
+                                <Button Grid.Column="1" Content="Browse"
+                                        Command="{Binding BrowseOutputDirectoryCommand}" />
+                            </Grid>
+                        </StackPanel>
+                        <Border Classes="CpbSurface" Padding="16">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Summary" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding InstallerPath}" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding PackageName}" Opacity="0.75" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <Grid IsVisible="{Binding IsReviewStep}" ColumnDefinitions="*,Auto" ColumnSpacing="18">
+                        <StackPanel Spacing="14">
+                            <Border Classes="CpbSurface" Padding="16">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="Package" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding PackageName}" />
+                                    <TextBlock Text="{Binding Version}" Opacity="0.75" />
+                                </StackPanel>
+                            </Border>
+                            <Border Classes="CpbSurface" Padding="16">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="Installer" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding InstallerPath}" TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding SelectedInstallerType}" Opacity="0.75" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                        <Border Grid.Column="1" Width="420" Classes="CpbSurface" Padding="16"
+                                IsVisible="{Binding IsScriptPreviewExpanded}">
+                            <Grid RowDefinitions="Auto,*">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="Script preview" FontWeight="SemiBold" />
+                                    <Button Grid.Column="1" Classes="CpbIconButton"
+                                            Command="{Binding ToggleScriptPreviewCommand}"
+                                            ToolTip.Tip="Collapse script preview">
+                                        <materialIcons:MaterialIcon Kind="ChevronRight" />
+                                    </Button>
+                                </Grid>
+                                <TextBox Grid.Row="1" Margin="0,12,0,0" Classes="CpbCodePreview"
+                                         Text="{Binding ScriptPreview}" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+
+                <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                    <Button Content="Back" Command="{Binding PreviousStepCommand}" />
+                    <Button Grid.Column="2" Content="Next" Command="{Binding NextStepCommand}"
+                            IsVisible="{Binding IsNotReviewStep}" />
+                    <Button Grid.Column="2" Content="Build package" Command="{Binding BuildPackageCommand}"
+                            Classes="accent" IsVisible="{Binding IsReviewStep}" />
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

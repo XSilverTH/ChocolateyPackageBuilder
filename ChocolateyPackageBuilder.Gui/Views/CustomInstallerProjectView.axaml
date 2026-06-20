@@ -1,0 +1,266 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:ChocolateyPackageBuilder.Gui.ViewModels"
+             xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Name="Root"
+             mc:Ignorable="d"
+             d:DesignWidth="1400"
+             d:DesignHeight="820"
+             x:Class="ChocolateyPackageBuilder.Gui.Views.CustomInstallerProjectView"
+             x:DataType="vm:CustomInstallerProjectViewModel"
+             Classes="CpbPage">
+    <Grid RowDefinitions="Auto,*" RowSpacing="18">
+        <Border Classes="CpbToolbar">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                <StackPanel Spacing="3">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding PackageName}" FontSize="24" FontWeight="SemiBold" />
+                        <TextBlock Text="*" FontSize="24" FontWeight="Bold" Foreground="Tomato"
+                                   IsVisible="{Binding IsDirty}" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding Version}" Opacity="0.72" />
+                    <TextBlock Text="{Binding ProjectPath}" FontSize="12" Opacity="0.64" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Button Classes="CpbIconButton" Command="{Binding CloseProjectCommand}" ToolTip.Tip="Close project"
+                            Foreground="Tomato">
+                        <materialIcons:MaterialIcon Kind="Close" />
+                    </Button>
+                    <Button Classes="CpbIconButton" Command="{Binding SaveProjectCommand}" ToolTip.Tip="Save project">
+                        <materialIcons:MaterialIcon Kind="ContentSaveOutline" />
+                    </Button>
+                    <Button Classes="CpbIconButton" Command="{Binding SaveProjectAsCommand}"
+                            ToolTip.Tip="Save project as">
+                        <materialIcons:MaterialIcon Kind="ContentSaveEditOutline" />
+                    </Button>
+                    <Button Classes="CpbIconButton" Command="{Binding BuildProjectCommand}" ToolTip.Tip="Build package">
+                        <materialIcons:MaterialIcon Kind="PackageVariant" />
+                    </Button>
+                    <Button Classes="CpbIconButton" Command="{Binding OpenMetadataEditorCommand}"
+                            ToolTip.Tip="Edit metadata">
+                        <materialIcons:MaterialIcon Kind="InformationOutline" />
+                    </Button>
+                    <Button Classes="CpbIconButton" Command="{Binding ToggleScriptPreviewCommand}"
+                            ToolTip.Tip="Toggle script preview">
+                        <materialIcons:MaterialIcon Kind="Console" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="18">
+            <Border Grid.Column="0" Classes="CpbSidebar" Width="{Binding SidebarWidth}">
+                <Grid RowDefinitions="Auto,*" RowSpacing="14">
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                        <TextBlock Text="Files" FontSize="18" FontWeight="SemiBold"
+                                   IsVisible="{Binding IsSidebarExpanded}" />
+                        <Button Grid.Column="1" Classes="CpbIconButton" Command="{Binding AddProjectFileCommand}"
+                                ToolTip.Tip="Add file">
+                            <materialIcons:MaterialIcon Kind="FilePlusOutline" />
+                        </Button>
+                        <Button Grid.Column="2" Classes="CpbIconButton" Command="{Binding ToggleSidebarCommand}"
+                                ToolTip.Tip="Collapse files">
+                            <materialIcons:MaterialIcon Kind="ChevronLeft" />
+                        </Button>
+                    </Grid>
+                    <StackPanel Grid.Row="1" Spacing="10" IsVisible="{Binding IsSidebarExpanded}">
+                        <ItemsControl ItemsSource="{Binding ProjectFiles}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ProjectFileItemViewModel">
+                                    <Expander Header="{Binding DisplayName}" Margin="0,0,0,8">
+                                        <StackPanel Spacing="8" Margin="0,8,0,0">
+                                            <TextBox Text="{Binding Id}" PlaceholderText="id" />
+                                            <TextBox Text="{Binding SourcePath}" IsReadOnly="True"
+                                                     PlaceholderText="source path" />
+                                            <Button Classes="CpbIconButton"
+                                                    Command="{Binding #Root.((vm:CustomInstallerProjectViewModel)DataContext).RemoveProjectFileCommand}"
+                                                    CommandParameter="{Binding .}" HorizontalAlignment="Right"
+                                                    ToolTip.Tip="Remove file">
+                                                <materialIcons:MaterialIcon Kind="TrashCanOutline" />
+                                            </Button>
+                                        </StackPanel>
+                                    </Expander>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Spacing="10" IsVisible="{Binding IsSidebarCollapsed}"
+                                HorizontalAlignment="Center">
+                        <TextBlock Text="Files" />
+                        <Button Classes="CpbIconButton" Command="{Binding AddProjectFileCommand}"
+                                ToolTip.Tip="Add file">
+                            <materialIcons:MaterialIcon Kind="Plus" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Column="1" RowDefinitions="Auto,*" RowSpacing="18">
+                <ItemsControl ItemsSource="{Binding Components}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ComponentDefinitionViewModel">
+                            <Border Classes="CpbComponentCard" Margin="0,0,12,0" Width="240">
+                                <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                                    <TextBlock Grid.Row="1" Text="{Binding Description}" TextWrapping="Wrap"
+                                               Opacity="0.72" />
+                                    <Button Grid.Row="2" Content="Add"
+                                            Command="{Binding #Root.((vm:CustomInstallerProjectViewModel)DataContext).AddComponentCommand}"
+                                            CommandParameter="{Binding .}" HorizontalAlignment="Left" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <ScrollViewer Grid.Row="1" DragDrop.AllowDrop="True" DragDrop.Drop="ActionStack_OnDrop">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Add a component to start the install script." IsVisible="False" />
+                        <ItemsControl ItemsSource="{Binding Actions}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ActionItemViewModel">
+                                    <Border Classes="CpbActionCard" Margin="0,0,0,12" DragDrop.AllowDrop="True"
+                                            DragDrop.DragOver="ActionCard_OnDragOver" DragDrop.Drop="ActionCard_OnDrop"
+                                            Tag="{Binding .}">
+                                        <StackPanel Spacing="12">
+                                            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="10">
+                                                <Border Width="28" Height="28" CornerRadius="6"
+                                                        Background="{DynamicResource SukiLowBackgroundBrush}"
+                                                        PointerPressed="ActionDragHandle_OnPointerPressed"
+                                                        Tag="{Binding .}">
+                                                    <materialIcons:MaterialIcon Kind="DragVertical"
+                                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                                <TextBlock Grid.Column="1" Text="{Binding Summary}"
+                                                           FontWeight="SemiBold" VerticalAlignment="Center" />
+                                                <Button Grid.Column="4" Classes="CpbIconButton"
+                                                        Command="{Binding #Root.((vm:CustomInstallerProjectViewModel)DataContext).RemoveActionCommand}"
+                                                        CommandParameter="{Binding .}" ToolTip.Tip="Remove action">
+                                                    <materialIcons:MaterialIcon Kind="TrashCanOutline" />
+                                                </Button>
+                                                <CheckBox Grid.Column="3" Content="Open"
+                                                          IsChecked="{Binding IsExpanded}" VerticalAlignment="Center" />
+                                            </Grid>
+
+                                            <Grid IsVisible="{Binding IsExpanded}" RowDefinitions="Auto,Auto"
+                                                  RowSpacing="10">
+                                                <Grid ColumnDefinitions="*,*" ColumnSpacing="14">
+                                                    <StackPanel Spacing="6">
+                                                        <TextBlock Text="Source" FontWeight="SemiBold" />
+                                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                                            <ComboBox
+                                                                ItemsSource="{Binding #Root.((vm:CustomInstallerProjectViewModel)DataContext).ActionPathKinds}"
+                                                                SelectedItem="{Binding SourceKind}" />
+                                                            <TextBox Grid.Column="1" Text="{Binding SourceValue}"
+                                                                     PlaceholderText="file id or path" />
+                                                        </Grid>
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="1" Spacing="6"
+                                                                IsVisible="{Binding IsCopyFile}">
+                                                        <TextBlock Text="Destination" FontWeight="SemiBold" />
+                                                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                                                            <ComboBox
+                                                                ItemsSource="{Binding #Root.((vm:CustomInstallerProjectViewModel)DataContext).ActionPathKinds}"
+                                                                SelectedItem="{Binding DestinationKind}" />
+                                                            <TextBox Grid.Column="1" Text="{Binding DestinationValue}"
+                                                                     PlaceholderText="destination" />
+                                                        </Grid>
+                                                    </StackPanel>
+                                                </Grid>
+                                                <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto,*" ColumnSpacing="14"
+                                                      VerticalAlignment="Center">
+                                                    <TextBox Text="{Binding Arguments}" PlaceholderText="arguments"
+                                                             IsVisible="{Binding IsRunFile}" />
+                                                    <CheckBox Grid.Column="1" Content="Overwrite"
+                                                              IsChecked="{Binding Overwrite}"
+                                                              IsVisible="{Binding IsCopyFile}" />
+                                                    <CheckBox Grid.Column="2" Content="Wait"
+                                                              IsChecked="{Binding WaitForExit}"
+                                                              IsVisible="{Binding IsRunFile}" />
+                                                    <TextBox Grid.Column="3" Text="{Binding ValidExitCodesText}"
+                                                             PlaceholderText="valid exit codes"
+                                                             IsVisible="{Binding IsRunFile}" />
+                                                </Grid>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+
+            <Border Grid.Column="2" Classes="CpbCard" Width="{Binding ScriptPreviewWidth}">
+                <Grid>
+                    <Grid RowDefinitions="Auto,*" IsVisible="{Binding IsScriptPreviewExpanded}">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Text="Script preview" FontSize="18" FontWeight="SemiBold" />
+                            <Button Grid.Column="1" Classes="CpbIconButton"
+                                    Command="{Binding ToggleScriptPreviewCommand}"
+                                    ToolTip.Tip="Collapse script preview">
+                                <materialIcons:MaterialIcon Kind="Close" />
+                            </Button>
+                        </Grid>
+                        <TextBox Grid.Row="1" Margin="0,12,0,0" Classes="CpbCodePreview" Text="{Binding ScriptPreview}" />
+                    </Grid>
+                    <Button Content="Script" Command="{Binding ToggleScriptPreviewCommand}"
+                            IsVisible="{Binding IsScriptPreviewCollapsed}" HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+        </Grid>
+        <Border Grid.Row="1" HorizontalAlignment="Right" Width="380" Margin="0,24,24,24" Padding="24"
+                Classes="metadataFlyout" Classes.open="{Binding IsMetadataEditorOpen}"
+                IsHitTestVisible="{Binding IsMetadataEditorOpen}" Background="{DynamicResource SukiCardBackground}"
+                CornerRadius="18" BorderBrush="{DynamicResource SukiBorderBrush}" BorderThickness="1">
+            <Border.Styles>
+                <Style Selector="Border.metadataFlyout">
+                    <Setter Property="Opacity" Value="0" />
+                    <Setter Property="RenderTransform" Value="translateX(20px)" />
+                    <Setter Property="Transitions">
+                        <Transitions>
+                            <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseOut" />
+                            <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"
+                                                           Easing="CubicEaseOut" />
+                        </Transitions>
+                    </Setter>
+                </Style>
+                <Style Selector="Border.metadataFlyout.open">
+                    <Setter Property="Opacity" Value="1" />
+                    <Setter Property="RenderTransform" Value="translateX(0px)" />
+                </Style>
+            </Border.Styles>
+            <Grid RowDefinitions="Auto,*">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Metadata" FontSize="22" FontWeight="SemiBold" />
+                    <Button Grid.Column="1" Classes="CpbIconButton" Command="{Binding CloseMetadataEditorCommand}">
+                        <materialIcons:MaterialIcon Kind="Close" />
+                    </Button>
+                </Grid>
+                <StackPanel Grid.Row="1" Margin="0,18,0,0" Spacing="12">
+                    <TextBlock Text="Package name" FontWeight="SemiBold" />
+                    <TextBox Text="{Binding PackageName}" />
+                    <TextBlock Text="Version" FontWeight="SemiBold" />
+                    <TextBox Text="{Binding Version}" />
+                    <TextBlock Text="Maintainer" FontWeight="SemiBold" />
+                    <TextBox Text="{Binding Maintainer}" />
+                    <TextBlock Text="Description" FontWeight="SemiBold" />
+                    <TextBox Text="{Binding Description}" />
+                    <TextBlock Text="Output directory" FontWeight="SemiBold" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <TextBox Text="{Binding OutputDirectory}" />
+                        <Button Grid.Column="1" Content="Browse" Command="{Binding BrowseOutputDirectoryCommand}" />
+                    </Grid>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

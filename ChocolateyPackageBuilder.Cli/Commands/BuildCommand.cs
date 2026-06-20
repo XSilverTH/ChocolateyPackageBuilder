@@ -1,13 +1,18 @@
 using System.ComponentModel;
 using ChocolateyPackageBuilder.Core;
+using ChocolateyPackageBuilder.Core.Interfaces;
+using ChocolateyPackageBuilder.Core.Services;
+using ChocolateyPackageBuilder.Core.Utilities;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
 namespace ChocolateyPackageBuilder.Cli.Commands;
 
-public sealed class BuildCommand : AsyncCommand<BuildCommand.Settings>
+public sealed class BuildCommand(IPackageGenerator packageGenerator, IInstallerDetector installerDetector)
+    : AsyncCommand<BuildCommand.Settings>
 {
-    protected override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
+    protected override async Task<int> ExecuteAsync(CommandContext context, Settings settings,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -77,7 +82,7 @@ public sealed class BuildCommand : AsyncCommand<BuildCommand.Settings>
                 AnsiConsole.MarkupLine(
                     "[yellow]Warning:[/] Installer type was not detected. Scaffolded template silent arguments need review.");
 
-            var result = await PackageGenerator.GenerateAsync(new PackageBuildRequest(
+            var result = await packageGenerator.GenerateAsync(new PackageBuildRequest(
                 installerPath,
                 type,
                 packageName,
@@ -107,11 +112,11 @@ public sealed class BuildCommand : AsyncCommand<BuildCommand.Settings>
     }
 
 
-    private static InstallerType ResolveInstallerType(string value, string installerPath)
+    private InstallerType ResolveInstallerType(string value, string installerPath)
     {
         return value.Trim().ToLowerInvariant() switch
         {
-            "auto" => InstallerDetector.Detect(installerPath),
+            "auto" => installerDetector.Detect(installerPath),
             "msi" => InstallerType.Msi,
             "inno" => InstallerType.InnoSetup,
             "nsis" => InstallerType.Nsis,
@@ -153,16 +158,12 @@ public sealed class BuildCommand : AsyncCommand<BuildCommand.Settings>
 
         public override ValidationResult Validate()
         {
-            if (string.IsNullOrWhiteSpace(Type))
-            {
-                return ValidationResult.Error("Installer type is required.");
-            }
+            if (string.IsNullOrWhiteSpace(Type)) return ValidationResult.Error("Installer type is required.");
 
             var typeLower = Type.Trim().ToLowerInvariant();
-            if (typeLower != "auto" && typeLower != "msi" && typeLower != "inno" && typeLower != "nsis" && typeLower != "scaffold")
-            {
+            if (typeLower != "auto" && typeLower != "msi" && typeLower != "inno" && typeLower != "nsis" &&
+                typeLower != "scaffold")
                 return ValidationResult.Error("--type must be one of: auto, msi, inno, nsis, scaffold.");
-            }
 
             return base.Validate();
         }

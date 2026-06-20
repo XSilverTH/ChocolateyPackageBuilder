@@ -8,12 +8,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Spectre.Console.Cli" Version="0.55.0" />
-        <PackageReference Include="SukiUI" Version="7.0.1" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.9"/>
+        <PackageReference Include="Spectre.Console.Cli" Version="0.55.0"/>
+        <PackageReference Include="SukiUI" Version="7.0.1"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\ChocolateyPackageBuilder.Core\ChocolateyPackageBuilder.Core.csproj" />
+        <ProjectReference Include="..\ChocolateyPackageBuilder.Core\ChocolateyPackageBuilder.Core.csproj"/>
     </ItemGroup>
 
 </Project>

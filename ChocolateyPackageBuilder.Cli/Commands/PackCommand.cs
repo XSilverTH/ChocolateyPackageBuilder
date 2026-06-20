@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using ChocolateyPackageBuilder.Core;
+using ChocolateyPackageBuilder.Core.Interfaces;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -7,7 +8,17 @@ namespace ChocolateyPackageBuilder.Cli.Commands;
 
 public sealed class PackCommand : AsyncCommand<PackCommand.Settings>
 {
-    protected override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
+    private readonly IPackageGenerator _packageGenerator;
+    private readonly ICustomInstallerProjectStore _projectStore;
+
+    public PackCommand(IPackageGenerator packageGenerator, ICustomInstallerProjectStore projectStore)
+    {
+        _packageGenerator = packageGenerator;
+        _projectStore = projectStore;
+    }
+
+    protected override async Task<int> ExecuteAsync(CommandContext context, Settings settings,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -26,13 +37,13 @@ public sealed class PackCommand : AsyncCommand<PackCommand.Settings>
 
             var packPath = settings.Path.Trim();
             if (File.Exists(packPath) &&
-                System.IO.Path.GetExtension(packPath)
-                    .Equals(CustomInstallerProjectStore.FileExtension, StringComparison.OrdinalIgnoreCase))
+                Path.GetExtension(packPath)
+                    .Equals(_projectStore.FileExtension, StringComparison.OrdinalIgnoreCase))
             {
                 var outputDir = string.IsNullOrWhiteSpace(settings.Output)
                     ? Environment.CurrentDirectory
                     : settings.Output.Trim();
-                var result = await PackageGenerator.PackCustomProjectAsync(
+                var result = await _packageGenerator.PackCustomProjectAsync(
                     new CustomProjectPackRequest(packPath, outputDir), cancellationToken);
                 AnsiConsole.MarkupLine($"[green]Packed project:[/] {Markup.Escape(result.OutputPath)}");
                 return 0;
@@ -40,7 +51,7 @@ public sealed class PackCommand : AsyncCommand<PackCommand.Settings>
 
             if (Directory.Exists(packPath))
             {
-                var result = PackageGenerator.PackScaffold(packPath, settings.Output);
+                var result = _packageGenerator.PackScaffold(packPath, settings.Output);
                 AnsiConsole.MarkupLine($"[green]Packed scaffold:[/] {Markup.Escape(result.OutputPath)}");
                 return 0;
             }
@@ -62,7 +73,8 @@ public sealed class PackCommand : AsyncCommand<PackCommand.Settings>
         public string? Path { get; set; }
 
         [CommandOption("-o|--output")]
-        [Description("Output directory for the generated .nupkg. Defaults to the scaffold parent directory or current directory for .cpbproj files.")]
+        [Description(
+            "Output directory for the generated .nupkg. Defaults to the scaffold parent directory or current directory for .cpbproj files.")]
         public string? Output { get; set; }
     }
 }

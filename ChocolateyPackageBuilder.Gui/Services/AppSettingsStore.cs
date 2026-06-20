@@ -2,10 +2,17 @@ using System;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using ChocolateyPackageBuilder.Gui.Models;
 
 namespace ChocolateyPackageBuilder.Gui.Services;
 
-public static class AppSettingsStore
+public interface IAppSettingsStore
+{
+    AppSettings LoadOrDefault(out string? warning);
+    void Save(AppSettings settings);
+}
+
+public sealed class AppSettingsStore : IAppSettingsStore
 {
     private static readonly JsonSerializerOptions Options = new()
     {
@@ -14,7 +21,7 @@ public static class AppSettingsStore
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public static AppSettings LoadOrDefault(out string? warning)
+    public AppSettings LoadOrDefault(out string? warning)
     {
         warning = null;
         var path = GetSettingsPath();
@@ -32,7 +39,7 @@ public static class AppSettingsStore
         }
     }
 
-    public static void Save(AppSettings settings)
+    public void Save(AppSettings settings)
     {
         var path = GetSettingsPath();
         var directory = Path.GetDirectoryName(path);

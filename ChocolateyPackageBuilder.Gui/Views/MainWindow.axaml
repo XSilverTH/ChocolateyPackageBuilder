@@ -19,21 +19,34 @@
                          BackgroundAnimationEnabled="True">
     <Grid RowDefinitions="*,Auto">
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
-            <sukiControls:SukiSideMenu Grid.Column="0" UseCustomContent="True" IsMenuExpanded="False" SidebarToggleEnabled="True">
-            <sukiControls:SukiSideMenu.Items>
-                <sukiControls:SukiSideMenuItem Header="Quick installer" IsSelected="{Binding IsQuickInstallerActive, Mode=OneWay}" Tapped="QuickInstaller_Tapped" Icon="{materialIcons:MaterialIconExt Kind=LightningBolt, IconSize=24}" />
-                <sukiControls:SukiSideMenuItem Header="Custom project" IsSelected="{Binding IsCustomProjectActive, Mode=OneWay}" Tapped="CurrentProject_Tapped" Icon="{materialIcons:MaterialIconExt Kind=FileDocumentEditOutline, IconSize=24}" />
-            </sukiControls:SukiSideMenu.Items>
+            <sukiControls:SukiSideMenu Grid.Column="0" UseCustomContent="True" IsMenuExpanded="False"
+                                       SidebarToggleEnabled="True">
+                <sukiControls:SukiSideMenu.Items>
+                    <sukiControls:SukiSideMenuItem Header="Quick installer"
+                                                   IsSelected="{Binding IsQuickInstallerActive, Mode=OneWay}"
+                                                   Tapped="QuickInstaller_Tapped"
+                                                   Icon="{materialIcons:MaterialIconExt Kind=LightningBolt, IconSize=24}" />
+                    <sukiControls:SukiSideMenuItem Header="Custom project"
+                                                   IsSelected="{Binding IsCustomProjectActive, Mode=OneWay}"
+                                                   Tapped="CurrentProject_Tapped"
+                                                   Icon="{materialIcons:MaterialIconExt Kind=FileDocumentEditOutline, IconSize=24}" />
+                </sukiControls:SukiSideMenu.Items>
             </sukiControls:SukiSideMenu>
 
-            <Button Grid.Column="0" Classes="Basic" Command="{Binding OpenSettingsCommand}" ToolTip.Tip="Settings" Width="40" Height="40" CornerRadius="20" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,16">
-                <materialIcons:MaterialIcon Kind="CogOutline" Width="24" Height="24" Foreground="{Binding $parent[Window].Foreground}" />
+            <Button Grid.Column="0" Classes="Basic" Command="{Binding OpenSettingsCommand}" ToolTip.Tip="Settings"
+                    Width="40" Height="40" CornerRadius="20" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                    Margin="0,0,0,16">
+                <materialIcons:MaterialIcon Kind="CogOutline" Width="24" Height="24"
+                                            Foreground="{Binding $parent[Window].Foreground}" />
             </Button>
 
             <Grid Grid.Column="1">
                 <ContentControl Content="{Binding CurrentPage}" />
 
-                <Border HorizontalAlignment="Right" Width="360" Margin="0,24,24,24" Padding="24" Classes="settingsFlyout" Classes.open="{Binding IsSettingsOpen}" IsHitTestVisible="{Binding IsSettingsOpen}" Background="{DynamicResource SukiCardBackground}" CornerRadius="18" BorderBrush="{DynamicResource SukiBorderBrush}" BorderThickness="1">
+                <Border HorizontalAlignment="Right" Width="360" Margin="0,24,24,24" Padding="24"
+                        Classes="settingsFlyout" Classes.open="{Binding IsSettingsOpen}"
+                        IsHitTestVisible="{Binding IsSettingsOpen}" Background="{DynamicResource SukiCardBackground}"
+                        CornerRadius="18" BorderBrush="{DynamicResource SukiBorderBrush}" BorderThickness="1">
                     <Border.Styles>
                         <Style Selector="Border.settingsFlyout">
                             <Setter Property="Opacity" Value="0" />
@@ -41,7 +54,8 @@
                             <Setter Property="Transitions">
                                 <Transitions>
                                     <DoubleTransition Property="Opacity" Duration="0:0:0.2" Easing="CubicEaseOut" />
-                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" Easing="CubicEaseOut" />
+                                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2"
+                                                                   Easing="CubicEaseOut" />
                                 </Transitions>
                             </Setter>
                         </Style>
@@ -56,7 +70,8 @@
                                 <TextBlock Text="Settings" FontSize="22" FontWeight="SemiBold" />
                                 <TextBlock Text="Application preferences" Opacity="0.7" />
                             </StackPanel>
-                            <Button Grid.Column="1" Classes="CpbIconButton" Command="{Binding CloseSettingsCommand}" ToolTip.Tip="Close settings">
+                            <Button Grid.Column="1" Classes="CpbIconButton" Command="{Binding CloseSettingsCommand}"
+                                    ToolTip.Tip="Close settings">
                                 <materialIcons:MaterialIcon Kind="Close" />
                             </Button>
                         </Grid>
@@ -64,23 +79,28 @@
                         <StackPanel Grid.Row="1" Margin="0,24,0,0" Spacing="16">
                             <StackPanel Spacing="6">
                                 <TextBlock Text="Theme" FontWeight="SemiBold" />
-                                <ComboBox ItemsSource="{Binding Settings.ThemeModes}" SelectedItem="{Binding Settings.ThemeMode}" HorizontalAlignment="Stretch" />
+                                <ComboBox ItemsSource="{Binding Settings.ThemeModes}"
+                                          SelectedItem="{Binding Settings.ThemeMode}" HorizontalAlignment="Stretch" />
                             </StackPanel>
                             <CheckBox Content="Verbose status" IsChecked="{Binding Settings.VerboseStatus}" />
-                            <CheckBox Content="Remember workspace layout" IsChecked="{Binding Settings.RememberWorkspaceLayout}" />
+                            <CheckBox Content="Remember workspace layout"
+                                      IsChecked="{Binding Settings.RememberWorkspaceLayout}" />
                         </StackPanel>
                     </Grid>
                 </Border>
             </Grid>
-            </Grid>
+        </Grid>
         <Border Grid.Row="1" Classes="CpbStatusBar">
             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalAlignment="Center">
-                <ProgressBar Width="120" Height="5" IsIndeterminate="True" IsVisible="{Binding Status.IsBusy}" VerticalAlignment="Center" />
+                <ProgressBar Width="120" Height="5" IsIndeterminate="True" IsVisible="{Binding Status.IsBusy}"
+                             VerticalAlignment="Center" />
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
                     <TextBlock Text="{Binding Status.Message}" FontWeight="SemiBold" />
-                    <TextBlock Text="{Binding Status.Detail}" IsVisible="{Binding Settings.VerboseStatus}" Opacity="0.75" />
+                    <TextBlock Text="{Binding Status.Detail}" IsVisible="{Binding Settings.VerboseStatus}"
+                               Opacity="0.75" />
                 </StackPanel>
-                <TextBlock Grid.Column="2" Text="Error" IsVisible="{Binding Status.IsError}" Foreground="Tomato" FontWeight="SemiBold" />
+                <TextBlock Grid.Column="2" Text="Error" IsVisible="{Binding Status.IsError}" Foreground="Tomato"
+                           FontWeight="SemiBold" />
             </Grid>
         </Border>
     </Grid>

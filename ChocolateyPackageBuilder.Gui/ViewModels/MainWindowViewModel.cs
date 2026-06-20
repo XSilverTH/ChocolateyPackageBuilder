@@ -1,8 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using ChocolateyPackageBuilder.Core;
-using ChocolateyPackageBuilder.Gui.Features.CustomInstallerProject;
-using ChocolateyPackageBuilder.Gui.Features.PackageBuilder;
+using ChocolateyPackageBuilder.Core.Interfaces;
+using ChocolateyPackageBuilder.Core.Models;
 using ChocolateyPackageBuilder.Gui.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -11,23 +10,35 @@ namespace ChocolateyPackageBuilder.Gui.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    private readonly ICustomInstallerProjectStore _customInstallerProjectStore;
+    private readonly ICustomInstallerScriptGenerator _customInstallerScriptGenerator;
     private readonly IFileDialogService _fileDialogService;
+    private readonly IPackageGenerator _packageGenerator;
 
     [ObservableProperty] private ViewModelBase currentPage;
     [ObservableProperty] private CustomInstallerProjectViewModel? currentProjectWorkspace;
     [ObservableProperty] private bool isSettingsOpen;
 
-    public MainWindowViewModel(IFileDialogService fileDialogService)
+    public MainWindowViewModel(
+        IFileDialogService fileDialogService,
+        AppStatusViewModel status,
+        SettingsViewModel settings,
+        PackageBuilderViewModel packageBuilderViewModel,
+        ICustomInstallerProjectStore customInstallerProjectStore,
+        IPackageGenerator packageGenerator,
+        ICustomInstallerScriptGenerator customInstallerScriptGenerator)
     {
         _fileDialogService = fileDialogService;
-        Status = new AppStatusViewModel();
-        var loadedSettings = AppSettingsStore.LoadOrDefault(out var settingsWarning);
-        Settings = new SettingsViewModel(loadedSettings, Status);
+        Status = status;
+        Settings = settings;
         Settings.ApplyTheme();
-        QuickInstallerPage = new PackageBuilderViewModel(fileDialogService, Status, Settings);
+        QuickInstallerPage = packageBuilderViewModel;
+        _customInstallerProjectStore = customInstallerProjectStore;
+        _packageGenerator = packageGenerator;
+        _customInstallerScriptGenerator = customInstallerScriptGenerator;
+
         CustomProjectHubPage = new CustomProjectHubViewModel(this);
         currentPage = QuickInstallerPage;
-        if (!string.IsNullOrWhiteSpace(settingsWarning)) Status.SetError(settingsWarning);
     }
 
     public PackageBuilderViewModel QuickInstallerPage { get; }
@@ -36,7 +47,9 @@ public partial class MainWindowViewModel : ViewModelBase
     public SettingsViewModel Settings { get; }
     public bool HasOpenCustomProject => CurrentProjectWorkspace is not null;
     public bool IsQuickInstallerActive => CurrentPage == QuickInstallerPage;
-    public bool IsCustomProjectActive => CurrentPage is CustomProjectHubViewModel or CustomProjectSetupViewModel or CustomInstallerProjectViewModel;
+
+    public bool IsCustomProjectActive => CurrentPage is CustomProjectHubViewModel or CustomProjectSetupViewModel
+        or CustomInstallerProjectViewModel;
 
     [RelayCommand]
     private void ShowQuickInstaller()
@@ -69,7 +82,8 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        CurrentPage = new CustomProjectSetupViewModel(_fileDialogService, Status, Settings, OpenCustomProjectWorkspace);
+        CurrentPage = new CustomProjectSetupViewModel(_fileDialogService, Status, Settings, OpenCustomProjectWorkspace,
+            _customInstallerProjectStore);
         Status.SetReady("New custom project wizard");
     }
 
@@ -87,7 +101,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         try
         {
-            var project = await CustomInstallerProjectStore.LoadAsync(path);
+            var project = await _customInstallerProjectStore.LoadAsync(path);
             OpenCustomProjectWorkspace(project, path, Environment.CurrentDirectory);
         }
         catch (Exception ex)
@@ -104,11 +118,16 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void CloseSettings() => IsSettingsOpen = false;
+    private void CloseSettings()
+    {
+        IsSettingsOpen = false;
+    }
 
     private void OpenCustomProjectWorkspace(CustomInstallerProject project, string projectPath, string outputDirectory)
     {
-        CurrentProjectWorkspace = new CustomInstallerProjectViewModel(_fileDialogService, Status, Settings, project, projectPath, outputDirectory, CloseCustomProjectWorkspace);
+        CurrentProjectWorkspace = new CustomInstallerProjectViewModel(_fileDialogService, Status, Settings, project,
+            projectPath, outputDirectory, CloseCustomProjectWorkspace, _customInstallerProjectStore, _packageGenerator,
+            _customInstallerScriptGenerator);
         CurrentPage = CurrentProjectWorkspace;
         OnPropertyChanged(nameof(HasOpenCustomProject));
         OnPropertyChanged(nameof(IsCustomProjectActive));
@@ -121,6 +140,7 @@ public partial class MainWindowViewModel : ViewModelBase
             Status.SetError("Save the current project before closing.");
             return;
         }
+
         CurrentProjectWorkspace = null;
         ShowCustomProjectCommand.Execute(null);
     }
